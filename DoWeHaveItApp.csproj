@@ -7,7 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.7.400" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+  </ItemGroup>
+
+  <!-- Exclude tests from build/publish -->
+  <ItemGroup>
+    <Compile Remove="DoWeHaveItApp.Tests\**\*.cs" />
+    <Content Remove="DoWeHaveItApp.Tests\**" />
+    <None Remove="DoWeHaveItApp.Tests\**" />
   </ItemGroup>
 
 </Project>
