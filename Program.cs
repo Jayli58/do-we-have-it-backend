@@ -2,6 +2,7 @@ using Amazon.DynamoDBv2;
 using DoWeHaveItApp.Infrastructure;
 using DoWeHaveItApp.Repositories;
 using DoWeHaveItApp.Services;
+using DoWeHaveItApp.Extensions;
 using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,6 +13,8 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+// Configure CORS
+builder.Services.AddMyCors(builder.Configuration);
 
 // Configure DynamoDB
 builder.Services.Configure<DynamoDbOptions>(builder.Configuration.GetSection("DynamoDb"));
@@ -40,6 +43,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors(CorsExtensions.GetPolicyName());
 
 app.UseAuthorization();
 
