@@ -27,6 +27,16 @@ public sealed class DynamoAttributeBuilderTests
     }
 
     [Fact]
+    public void BuildStringAttribute_TruncatesLongValues()
+    {
+        var longValue = new string('a', DynamoAttributeBuilder.DefaultStringLimit + 10);
+
+        var value = DynamoAttributeBuilder.BuildStringAttribute(longValue);
+
+        Assert.Equal(DynamoAttributeBuilder.DefaultStringLimit, value.S!.Length);
+    }
+
+    [Fact]
     public void AddOptionalStringAttribute_SkipsEmpty()
     {
         var attributes = new Dictionary<string, AttributeValue>();

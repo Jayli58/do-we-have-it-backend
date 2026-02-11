@@ -409,14 +409,12 @@ public sealed class DynamoInventoryRepository : IInventoryRepository
 
         DynamoAttributeBuilder.AddOptionalStringAttribute(record, "comments", item.Comments);
 
-        var sanitized = DynamoAttributeBuilder.SanitizeAttributes(record);
-
         if (attributes.Count > 0)
         {
-            sanitized["attributes"] = new AttributeValue { L = attributes };
+            record["attributes"] = new AttributeValue { L = attributes };
         }
 
-        return sanitized;
+        return DynamoAttributeBuilder.SanitizeAttributes(record);
     }
 
     private Dictionary<string, AttributeValue> BuildTemplateRecord(string userId, FormTemplate template)
@@ -432,7 +430,7 @@ public sealed class DynamoInventoryRepository : IInventoryRepository
             },
         }).ToList();
 
-        return new Dictionary<string, AttributeValue>
+        var record = new Dictionary<string, AttributeValue>
         {
             ["PK"] = new AttributeValue(BuildPk(userId)),
             ["SK"] = new AttributeValue(BuildTemplateSk(template.Id)),
@@ -442,6 +440,8 @@ public sealed class DynamoInventoryRepository : IInventoryRepository
             ["fields"] = new AttributeValue { L = fields },
             ["createdAt"] = new AttributeValue(template.CreatedAt),
         };
+
+        return DynamoAttributeBuilder.SanitizeAttributes(record);
     }
 
     private IEnumerable<WriteRequest> BuildSearchRecords(string userId, Item item, string parentKey)
