@@ -51,3 +51,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+// for integration tests
+public partial class Program { }

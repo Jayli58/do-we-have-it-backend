@@ -147,12 +147,18 @@ public sealed class DynamoInventoryRepository : IInventoryRepository
     {
         var parentKey = NormalizeParent(item.ParentId);
         var itemRecord = BuildItemRecord(userId, item, parentKey);
-        var writeRequests = new List<WriteRequest>
+        await _client.PutItemAsync(new PutItemRequest
         {
-            new() { PutRequest = new PutRequest { Item = itemRecord } },
-        };
+            TableName = TableName,
+            Item = itemRecord,
+        });
 
-        writeRequests.AddRange(BuildSearchRecords(userId, item, parentKey));
+        var writeRequests = BuildSearchRecords(userId, item, parentKey).ToList();
+        if (writeRequests.Count == 0)
+        {
+            return;
+        }
+
         await BatchWriteAsync(writeRequests);
     }
 
@@ -161,12 +167,18 @@ public sealed class DynamoInventoryRepository : IInventoryRepository
         var parentKey = NormalizeParent(item.ParentId);
         await DeleteSearchRecordsAsync(userId, item.Id);
 
-        var writeRequests = new List<WriteRequest>
+        await _client.PutItemAsync(new PutItemRequest
         {
-            new() { PutRequest = new PutRequest { Item = BuildItemRecord(userId, item, parentKey) } },
-        };
+            TableName = TableName,
+            Item = BuildItemRecord(userId, item, parentKey),
+        });
 
-        writeRequests.AddRange(BuildSearchRecords(userId, item, parentKey));
+        var writeRequests = BuildSearchRecords(userId, item, parentKey).ToList();
+        if (writeRequests.Count == 0)
+        {
+            return;
+        }
+
         await BatchWriteAsync(writeRequests);
     }
 
@@ -358,9 +370,17 @@ public sealed class DynamoInventoryRepository : IInventoryRepository
         var attributes = new List<AttributeValue>();
         foreach (var attribute in item.Attributes)
         {
-            var attributeMap = new Dictionary<string, AttributeValue>();
-            DynamoAttributeBuilder.AddOptionalStringAttribute(attributeMap, "fieldId", attribute.FieldId);
-            DynamoAttributeBuilder.AddOptionalStringAttribute(attributeMap, "fieldName", attribute.FieldName);
+            if (string.IsNullOrWhiteSpace(attribute.FieldId) || string.IsNullOrWhiteSpace(attribute.FieldName))
+            {
+                continue;
+            }
+
+            var attributeMap = new Dictionary<string, AttributeValue>
+            {
+                ["fieldId"] = new AttributeValue { S = attribute.FieldId },
+                ["fieldName"] = new AttributeValue { S = attribute.FieldName },
+            };
+
             DynamoAttributeBuilder.AddOptionalStringAttribute(attributeMap, "value", attribute.Value);
 
             if (attributeMap.Count > 0)
@@ -383,12 +403,14 @@ public sealed class DynamoInventoryRepository : IInventoryRepository
 
         DynamoAttributeBuilder.AddOptionalStringAttribute(record, "comments", item.Comments);
 
+        var sanitized = DynamoAttributeBuilder.SanitizeAttributes(record);
+
         if (attributes.Count > 0)
         {
-            record["attributes"] = new AttributeValue { L = attributes };
+            sanitized["attributes"] = new AttributeValue { L = attributes };
         }
 
-        return DynamoAttributeBuilder.SanitizeAttributes(record);
+        return sanitized;
     }
 
     private Dictionary<string, AttributeValue> BuildTemplateRecord(string userId, FormTemplate template)
