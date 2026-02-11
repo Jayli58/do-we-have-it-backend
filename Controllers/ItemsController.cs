@@ -81,9 +81,9 @@ public sealed class ItemsController : ApiControllerBase
     }
 
     [HttpGet("search")]
-    public async Task<ActionResult<SearchResultDto>> Search([FromQuery] string query, [FromQuery] string? parentId)
+    public async Task<ActionResult<SearchResultDto>> Search([FromQuery] string query)
     {
-        var results = await _searchService.SearchItemsAsync(UserId, parentId, query);
+        var results = await _searchService.SearchItemsAsync(UserId, query);
         return Ok(results);
     }
 }

@@ -9,7 +9,7 @@ public sealed class SearchServiceTests
     private const string UserId = "user-1";
 
     [Fact]
-    public async Task SearchItemsAsync_ReturnsMatchingItemsByParent()
+    public async Task SearchItemsAsync_ReturnsMatchingItemsAcrossParents()
     {
         var repository = new InMemoryInventoryRepository();
         var inventoryService = new InventoryService(repository);
@@ -31,7 +31,7 @@ public sealed class SearchServiceTests
             Attributes = new List<ItemAttributeDto>(),
         });
 
-        var results = await searchService.SearchItemsAsync(UserId, "kitchen", "coffee maker");
+        var results = await searchService.SearchItemsAsync(UserId, "coffee maker");
 
         Assert.Single(results.Items);
         Assert.Equal("Coffee Maker", results.Items[0].Name);
@@ -52,7 +52,7 @@ public sealed class SearchServiceTests
             Attributes = new List<ItemAttributeDto>(),
         });
 
-        var results = await searchService.SearchItemsAsync(UserId, "kitchen", "coffee makerr");
+        var results = await searchService.SearchItemsAsync(UserId, "coffee makerr");
 
         Assert.Empty(results.Items);
     }
@@ -63,7 +63,7 @@ public sealed class SearchServiceTests
         var repository = new InMemoryInventoryRepository();
         var searchService = new SearchService(repository);
 
-        var results = await searchService.SearchItemsAsync(UserId, "kitchen", " ");
+        var results = await searchService.SearchItemsAsync(UserId, " ");
 
         Assert.Empty(results.Items);
     }
@@ -83,7 +83,7 @@ public sealed class SearchServiceTests
             Attributes = new List<ItemAttributeDto>(),
         });
 
-        var results = await searchService.SearchItemsAsync(UserId, "garage", "vds");
+        var results = await searchService.SearchItemsAsync(UserId, "vds");
 
         Assert.Single(results.Items);
         Assert.Equal("vdsvew", results.Items[0].Name);
@@ -104,8 +104,36 @@ public sealed class SearchServiceTests
             Attributes = new List<ItemAttributeDto>(),
         });
 
-        var results = await searchService.SearchItemsAsync(UserId, "garage", "vdsw");
-
+        var results = await searchService.SearchItemsAsync(UserId, "vdsw");
+    
         Assert.Empty(results.Items);
+    }
+
+    [Fact]
+    public async Task SearchItemsAsync_ReturnsResultsFromDifferentParents()
+    {
+        var repository = new InMemoryInventoryRepository();
+        var inventoryService = new InventoryService(repository);
+        var searchService = new SearchService(repository);
+
+        await inventoryService.CreateItemAsync(UserId, new CreateItemRequest
+        {
+            Name = "Coffee Maker",
+            Comments = "Top shelf",
+            ParentId = "kitchen",
+            Attributes = new List<ItemAttributeDto>(),
+        });
+
+        await inventoryService.CreateItemAsync(UserId, new CreateItemRequest
+        {
+            Name = "Coffee Filters",
+            Comments = "Pantry",
+            ParentId = "garage",
+            Attributes = new List<ItemAttributeDto>(),
+        });
+
+        var results = await searchService.SearchItemsAsync(UserId, "coffee");
+
+        Assert.Equal(2, results.Items.Count);
     }
 }

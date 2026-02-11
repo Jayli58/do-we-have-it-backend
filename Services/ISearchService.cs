@@ -4,5 +4,5 @@ namespace DoWeHaveItApp.Services;
 
 public interface ISearchService
 {
-    Task<SearchResultDto> SearchItemsAsync(string userId, string? parentId, string query);
+    Task<SearchResultDto> SearchItemsAsync(string userId, string query);
 }

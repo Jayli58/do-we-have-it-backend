@@ -96,7 +96,7 @@ public sealed class InMemoryInventoryRepository : IInventoryRepository
         return Task.CompletedTask;
     }
 
-    public Task<IReadOnlyList<Item>> SearchItemsAsync(string userId, string? parentId, string query)
+    public Task<IReadOnlyList<Item>> SearchItemsAsync(string userId, string query)
     {
         var tokens = _tokenizer.Tokenize(query)
             .Distinct(StringComparer.OrdinalIgnoreCase)
@@ -107,17 +107,16 @@ public sealed class InMemoryInventoryRepository : IInventoryRepository
             return Task.FromResult<IReadOnlyList<Item>>(Array.Empty<Item>());
         }
 
-        var results = _items.Where(item => string.Equals(item.ParentId, parentId, StringComparison.OrdinalIgnoreCase))
-            .Where(item =>
-            {
-                var itemTokens = _tokenizer.Tokenize(item.Name, item.Comments)
-                    .Distinct(StringComparer.OrdinalIgnoreCase)
-                    .ToList();
-                return tokens.All(token => itemTokens.Any(itemToken =>
-                    itemToken.StartsWith(token, StringComparison.OrdinalIgnoreCase)));
-            })
-            .Select(CloneItem)
-            .ToList();
+        var results = _items.Where(item =>
+        {
+            var itemTokens = _tokenizer.Tokenize(item.Name, item.Comments)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+            return tokens.All(token => itemTokens.Any(itemToken =>
+                itemToken.StartsWith(token, StringComparison.OrdinalIgnoreCase)));
+        })
+        .Select(CloneItem)
+        .ToList();
 
         return Task.FromResult<IReadOnlyList<Item>>(results);
     }

@@ -12,14 +12,14 @@ public sealed class SearchService : ISearchService
         _repository = repository;
     }
 
-    public async Task<SearchResultDto> SearchItemsAsync(string userId, string? parentId, string query)
+    public async Task<SearchResultDto> SearchItemsAsync(string userId, string query)
     {
         if (string.IsNullOrWhiteSpace(query))
         {
             return new SearchResultDto { Items = Array.Empty<ItemDto>() };
         }
 
-        var items = await _repository.SearchItemsAsync(userId, parentId, query);
+        var items = await _repository.SearchItemsAsync(userId, query);
         var itemDtos = items.Select(DtoMapper.ToDto).ToList();
 
         return new SearchResultDto { Items = itemDtos };

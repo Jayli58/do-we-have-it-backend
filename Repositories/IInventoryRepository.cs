@@ -14,7 +14,7 @@ public interface IInventoryRepository
     Task CreateItemAsync(string userId, Item item);
     Task UpdateItemAsync(string userId, Item item);
     Task DeleteItemAsync(string userId, string? parentId, string itemId);
-    Task<IReadOnlyList<Item>> SearchItemsAsync(string userId, string? parentId, string query);
+    Task<IReadOnlyList<Item>> SearchItemsAsync(string userId, string query);
     Task<IReadOnlyList<FormTemplate>> GetTemplatesAsync(string userId);
     Task<FormTemplate?> GetTemplateAsync(string userId, string templateId);
     Task CreateTemplateAsync(string userId, FormTemplate template);

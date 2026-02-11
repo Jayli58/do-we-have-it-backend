@@ -204,7 +204,7 @@ public sealed class DynamoInventoryRepository : IInventoryRepository
         await BatchWriteAsync(writeRequests);
     }
 
-    public async Task<IReadOnlyList<Item>> SearchItemsAsync(string userId, string? parentId, string query)
+    public async Task<IReadOnlyList<Item>> SearchItemsAsync(string userId, string query)
     {
         var tokens = _tokenizer.Tokenize(query).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
         if (tokens.Count == 0)
@@ -212,7 +212,6 @@ public sealed class DynamoInventoryRepository : IInventoryRepository
             return Array.Empty<Item>();
         }
 
-        var parentKey = NormalizeParent(parentId);
         HashSet<(string ParentKey, string ItemId)>? itemKeys = null;
 
         foreach (var token in tokens)
@@ -225,13 +224,12 @@ public sealed class DynamoInventoryRepository : IInventoryRepository
                 {
                     TableName = TableName,
                     IndexName = "GSI1",
-                    FilterExpression = "GSI1PK = :pk AND begins_with(GSI1SK, :skPrefix) AND contains(GSI1SK, :parentKey)",
+                    FilterExpression = "GSI1PK = :pk AND begins_with(GSI1SK, :skPrefix)",
                     ExclusiveStartKey = lastEvaluatedKey,
                     ExpressionAttributeValues = new Dictionary<string, AttributeValue>
                     {
                         [":pk"] = new AttributeValue(BuildPk(userId)),
                         [":skPrefix"] = new AttributeValue($"TOKEN#{token}"),
-                        [":parentKey"] = new AttributeValue($"#PARENT#{parentKey}#"),
                     },
                 });
 
