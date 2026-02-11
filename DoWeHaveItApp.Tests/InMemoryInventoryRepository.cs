@@ -112,8 +112,9 @@ public sealed class InMemoryInventoryRepository : IInventoryRepository
             {
                 var itemTokens = _tokenizer.Tokenize(item.Name, item.Comments)
                     .Distinct(StringComparer.OrdinalIgnoreCase)
-                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
-                return tokens.All(token => itemTokens.Contains(token));
+                    .ToList();
+                return tokens.All(token => itemTokens.Any(itemToken =>
+                    itemToken.StartsWith(token, StringComparison.OrdinalIgnoreCase)));
             })
             .Select(CloneItem)
             .ToList();

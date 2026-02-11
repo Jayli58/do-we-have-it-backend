@@ -67,4 +67,45 @@ public sealed class SearchServiceTests
 
         Assert.Empty(results.Items);
     }
+
+    [Fact]
+    public async Task SearchItemsAsync_ReturnsMatchesForPrefixQuery()
+    {
+        var repository = new InMemoryInventoryRepository();
+        var inventoryService = new InventoryService(repository);
+        var searchService = new SearchService(repository);
+
+        await inventoryService.CreateItemAsync(UserId, new CreateItemRequest
+        {
+            Name = "vdsvew",
+            Comments = "",
+            ParentId = "garage",
+            Attributes = new List<ItemAttributeDto>(),
+        });
+
+        var results = await searchService.SearchItemsAsync(UserId, "garage", "vds");
+
+        Assert.Single(results.Items);
+        Assert.Equal("vdsvew", results.Items[0].Name);
+    }
+
+    [Fact]
+    public async Task SearchItemsAsync_ReturnsEmptyForNonPrefixQuery()
+    {
+        var repository = new InMemoryInventoryRepository();
+        var inventoryService = new InventoryService(repository);
+        var searchService = new SearchService(repository);
+
+        await inventoryService.CreateItemAsync(UserId, new CreateItemRequest
+        {
+            Name = "vdsvew",
+            Comments = "",
+            ParentId = "garage",
+            Attributes = new List<ItemAttributeDto>(),
+        });
+
+        var results = await searchService.SearchItemsAsync(UserId, "garage", "vdsw");
+
+        Assert.Empty(results.Items);
+    }
 }

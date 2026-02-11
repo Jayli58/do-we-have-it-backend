@@ -217,28 +217,36 @@ public sealed class DynamoInventoryRepository : IInventoryRepository
 
         foreach (var token in tokens)
         {
-            var response = await _client.QueryAsync(new QueryRequest
-            {
-                TableName = TableName,
-                IndexName = "GSI1",
-                KeyConditionExpression = "GSI1PK = :pk AND begins_with(GSI1SK, :skPrefix)",
-                ExpressionAttributeValues = new Dictionary<string, AttributeValue>
-                {
-                    [":pk"] = new AttributeValue(BuildPk(userId)),
-                    [":skPrefix"] = new AttributeValue($"TOKEN#{token}#PARENT#{parentKey}"),
-                },
-            });
-
             var tokenKeys = new HashSet<(string ParentKey, string ItemId)>();
-            foreach (var item in response.Items)
+            Dictionary<string, AttributeValue>? lastEvaluatedKey = null;
+            do
             {
-                var itemId = GetString(item, "itemId");
-                var itemParent = GetString(item, "parentId");
-                if (!string.IsNullOrWhiteSpace(itemId) && !string.IsNullOrWhiteSpace(itemParent))
+                var response = await _client.ScanAsync(new ScanRequest
                 {
-                    tokenKeys.Add((itemParent, itemId));
+                    TableName = TableName,
+                    IndexName = "GSI1",
+                    FilterExpression = "GSI1PK = :pk AND begins_with(GSI1SK, :skPrefix) AND contains(GSI1SK, :parentKey)",
+                    ExclusiveStartKey = lastEvaluatedKey,
+                    ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+                    {
+                        [":pk"] = new AttributeValue(BuildPk(userId)),
+                        [":skPrefix"] = new AttributeValue($"TOKEN#{token}"),
+                        [":parentKey"] = new AttributeValue($"#PARENT#{parentKey}#"),
+                    },
+                });
+
+                foreach (var item in response.Items)
+                {
+                    var itemId = GetString(item, "itemId");
+                    var itemParent = GetString(item, "parentId");
+                    if (!string.IsNullOrWhiteSpace(itemId) && !string.IsNullOrWhiteSpace(itemParent))
+                    {
+                        tokenKeys.Add((itemParent, itemId));
+                    }
                 }
-            }
+
+                lastEvaluatedKey = response.LastEvaluatedKey;
+            } while (lastEvaluatedKey != null && lastEvaluatedKey.Count > 0);
 
             if (itemKeys == null)
             {
