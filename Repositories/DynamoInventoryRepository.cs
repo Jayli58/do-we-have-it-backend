@@ -1,6 +1,7 @@
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 using DoWeHaveItApp.Infrastructure;
+using DoWeHaveItApp.Infrastructure.Dynamo;
 using DoWeHaveItApp.Models;
 using Microsoft.Extensions.Options;
 
@@ -336,9 +337,10 @@ public sealed class DynamoInventoryRepository : IInventoryRepository
     private static string BuildGsi1Sk(string token, string parentKey, string itemId)
         => $"TOKEN#{token}#PARENT#{parentKey}#ITEM#{itemId}";
 
+
     private Dictionary<string, AttributeValue> BuildFolderRecord(string userId, Folder folder, string parentKey)
     {
-        return new Dictionary<string, AttributeValue>
+        return DynamoAttributeBuilder.SanitizeAttributes(new Dictionary<string, AttributeValue>
         {
             ["PK"] = new AttributeValue(BuildPk(userId)),
             ["SK"] = new AttributeValue(BuildFolderSk(parentKey, folder.Id)),
@@ -348,22 +350,26 @@ public sealed class DynamoInventoryRepository : IInventoryRepository
             ["name"] = new AttributeValue(folder.Name),
             ["createdAt"] = new AttributeValue(folder.CreatedAt),
             ["updatedAt"] = new AttributeValue(folder.UpdatedAt),
-        };
+        });
     }
 
     private Dictionary<string, AttributeValue> BuildItemRecord(string userId, Item item, string parentKey)
     {
-        var attributes = item.Attributes.Select(attribute => new AttributeValue
+        var attributes = new List<AttributeValue>();
+        foreach (var attribute in item.Attributes)
         {
-            M = new Dictionary<string, AttributeValue>
-            {
-                ["fieldId"] = new AttributeValue(attribute.FieldId),
-                ["fieldName"] = new AttributeValue(attribute.FieldName),
-                ["value"] = new AttributeValue(attribute.Value),
-            },
-        }).ToList();
+            var attributeMap = new Dictionary<string, AttributeValue>();
+            DynamoAttributeBuilder.AddOptionalStringAttribute(attributeMap, "fieldId", attribute.FieldId);
+            DynamoAttributeBuilder.AddOptionalStringAttribute(attributeMap, "fieldName", attribute.FieldName);
+            DynamoAttributeBuilder.AddOptionalStringAttribute(attributeMap, "value", attribute.Value);
 
-        return new Dictionary<string, AttributeValue>
+            if (attributeMap.Count > 0)
+            {
+                attributes.Add(new AttributeValue { M = attributeMap });
+            }
+        }
+
+        var record = new Dictionary<string, AttributeValue>
         {
             ["PK"] = new AttributeValue(BuildPk(userId)),
             ["SK"] = new AttributeValue(BuildItemSk(parentKey, item.Id)),
@@ -371,11 +377,18 @@ public sealed class DynamoInventoryRepository : IInventoryRepository
             ["itemId"] = new AttributeValue(item.Id),
             ["parentId"] = new AttributeValue(parentKey),
             ["name"] = new AttributeValue(item.Name),
-            ["comments"] = new AttributeValue(item.Comments),
-            ["attributes"] = new AttributeValue { L = attributes },
             ["createdAt"] = new AttributeValue(item.CreatedAt),
             ["updatedAt"] = new AttributeValue(item.UpdatedAt),
         };
+
+        DynamoAttributeBuilder.AddOptionalStringAttribute(record, "comments", item.Comments);
+
+        if (attributes.Count > 0)
+        {
+            record["attributes"] = new AttributeValue { L = attributes };
+        }
+
+        return DynamoAttributeBuilder.SanitizeAttributes(record);
     }
 
     private Dictionary<string, AttributeValue> BuildTemplateRecord(string userId, FormTemplate template)
@@ -411,7 +424,7 @@ public sealed class DynamoInventoryRepository : IInventoryRepository
 
         foreach (var token in tokens)
         {
-            var record = new Dictionary<string, AttributeValue>
+            var record = DynamoAttributeBuilder.SanitizeAttributes(new Dictionary<string, AttributeValue>
             {
                 ["PK"] = new AttributeValue(BuildPk(userId)),
                 ["SK"] = new AttributeValue(BuildSearchSk(item.Id, token, parentKey)),
@@ -421,7 +434,7 @@ public sealed class DynamoInventoryRepository : IInventoryRepository
                 ["token"] = new AttributeValue(token),
                 ["GSI1PK"] = new AttributeValue(BuildPk(userId)),
                 ["GSI1SK"] = new AttributeValue(BuildGsi1Sk(token, parentKey, item.Id)),
-            };
+            });
 
             yield return new WriteRequest { PutRequest = new PutRequest { Item = record } };
         }
