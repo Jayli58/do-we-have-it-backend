@@ -99,6 +99,37 @@ public sealed class DynamoInventoryRepositoryTests
         }
     }
 
+    [Fact]
+    public void BuildItemRecord_PreservesAttributeList()
+    {
+        var repository = CreateRepository();
+
+        var item = new Item
+        {
+            Id = "item-2",
+            Name = "Scale",
+            Comments = string.Empty,
+            ParentId = null,
+            Attributes = new List<ItemAttribute>
+            {
+                new() { FieldId = "field-1", FieldName = "Weight", Value = "10" },
+                new() { FieldId = "field-2", FieldName = "Unit", Value = "kg" },
+                new() { FieldId = "field-3", FieldName = "Brand", Value = "Acme" },
+            },
+            CreatedAt = "2026-02-10T00:00:00Z",
+            UpdatedAt = "2026-02-10T00:00:00Z",
+        };
+
+        var record = InvokeBuildItemRecord(repository, UserId, item, "ROOT");
+
+        Assert.True(record.TryGetValue("attributes", out var attributesValue));
+        Assert.NotNull(attributesValue.L);
+        Assert.Equal(3, attributesValue.L!.Count);
+        Assert.Equal("field-1", attributesValue.L[0].M!["fieldId"].S);
+        Assert.Equal("Weight", attributesValue.L[0].M!["fieldName"].S);
+        Assert.Equal("10", attributesValue.L[0].M!["value"].S);
+    }
+
     private static Dictionary<string, AttributeValue> InvokeBuildItemRecord(
         DynamoInventoryRepository repository,
         string userId,

@@ -383,8 +383,8 @@ public sealed class DynamoInventoryRepository : IInventoryRepository
 
             var attributeMap = new Dictionary<string, AttributeValue>
             {
-                ["fieldId"] = new AttributeValue { S = attribute.FieldId },
-                ["fieldName"] = new AttributeValue { S = attribute.FieldName },
+                ["fieldId"] = DynamoAttributeBuilder.BuildStringAttribute(attribute.FieldId),
+                ["fieldName"] = DynamoAttributeBuilder.BuildStringAttribute(attribute.FieldName),
             };
 
             DynamoAttributeBuilder.AddOptionalStringAttribute(attributeMap, "value", attribute.Value);
@@ -411,7 +411,9 @@ public sealed class DynamoInventoryRepository : IInventoryRepository
 
         if (attributes.Count > 0)
         {
-            record["attributes"] = new AttributeValue { L = attributes };
+            var attributesValue = new AttributeValue { L = new List<AttributeValue>() };
+            attributesValue.L.AddRange(attributes);
+            record["attributes"] = attributesValue;
         }
 
         return DynamoAttributeBuilder.SanitizeAttributes(record);
@@ -423,9 +425,9 @@ public sealed class DynamoInventoryRepository : IInventoryRepository
         {
             M = new Dictionary<string, AttributeValue>
             {
-                ["id"] = new AttributeValue(field.Id),
-                ["name"] = new AttributeValue(field.Name),
-                ["type"] = new AttributeValue(field.Type),
+                ["id"] = DynamoAttributeBuilder.BuildStringAttribute(field.Id),
+                ["name"] = DynamoAttributeBuilder.BuildStringAttribute(field.Name),
+                ["type"] = DynamoAttributeBuilder.BuildStringAttribute(field.Type),
                 ["required"] = new AttributeValue { BOOL = field.Required },
             },
         }).ToList();
@@ -435,11 +437,13 @@ public sealed class DynamoInventoryRepository : IInventoryRepository
             ["PK"] = new AttributeValue(BuildPk(userId)),
             ["SK"] = new AttributeValue(BuildTemplateSk(template.Id)),
             ["entityType"] = new AttributeValue(TemplateEntity),
-            ["templateId"] = new AttributeValue(template.Id),
-            ["name"] = new AttributeValue(template.Name),
-            ["fields"] = new AttributeValue { L = fields },
-            ["createdAt"] = new AttributeValue(template.CreatedAt),
+            ["templateId"] = DynamoAttributeBuilder.BuildStringAttribute(template.Id),
+            ["name"] = DynamoAttributeBuilder.BuildStringAttribute(template.Name),
+            ["fields"] = new AttributeValue { L = new List<AttributeValue>() },
+            ["createdAt"] = DynamoAttributeBuilder.BuildStringAttribute(template.CreatedAt),
         };
+
+        record["fields"].L.AddRange(fields);
 
         return DynamoAttributeBuilder.SanitizeAttributes(record);
     }

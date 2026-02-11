@@ -27,6 +27,15 @@ public sealed class DynamoAttributeBuilderTests
     }
 
     [Fact]
+    public void BuildStringAttribute_PreservesUnicode()
+    {
+        var value = DynamoAttributeBuilder.BuildStringAttribute("食品");
+
+        Assert.Equal("食品", value.S);
+        Assert.False(value.NULL);
+    }
+
+    [Fact]
     public void BuildStringAttribute_TruncatesLongValues()
     {
         var longValue = new string('a', DynamoAttributeBuilder.DefaultStringLimit + 10);
@@ -111,5 +120,60 @@ public sealed class DynamoAttributeBuilderTests
             Assert.True(sanitized["list"].L![0].NULL);
             Assert.Equal("value", sanitized["list"].L![1].S);
         }
+    }
+
+    [Fact]
+    public void SanitizeAttributes_PreservesListMaps()
+    {
+        var mapValue = new AttributeValue
+        {
+            M = new Dictionary<string, AttributeValue>
+            {
+                ["fieldId"] = new AttributeValue { S = "field-1" },
+            },
+        };
+
+        Assert.Single(mapValue.M!);
+
+        var listValue = new AttributeValue { L = new List<AttributeValue>() };
+        listValue.L.Add(mapValue);
+
+        Assert.Single(listValue.L);
+
+        var listAttribute = new AttributeValue { L = new List<AttributeValue>() };
+        listAttribute.L.Add(new AttributeValue
+        {
+            M = new Dictionary<string, AttributeValue>
+            {
+                ["fieldId"] = new AttributeValue { S = "field-1" },
+                ["fieldName"] = new AttributeValue { S = "Name" },
+                ["value"] = new AttributeValue { S = "Value" },
+            },
+        });
+        listAttribute.L.Add(new AttributeValue
+        {
+            M = new Dictionary<string, AttributeValue>
+            {
+                ["fieldId"] = new AttributeValue { S = "field-2" },
+                ["fieldName"] = new AttributeValue { S = "Name2" },
+                ["value"] = new AttributeValue { S = "Value2" },
+            },
+        });
+
+        Assert.Equal(2, listAttribute.L.Count);
+
+        var attributes = new Dictionary<string, AttributeValue>
+        {
+            ["attributes"] = listAttribute,
+        };
+
+        Assert.Equal(2, attributes["attributes"].L!.Count);
+
+        var sanitized = DynamoAttributeBuilder.SanitizeAttributes(attributes);
+
+        Assert.True(sanitized.TryGetValue("attributes", out var sanitizedListValue));
+        Assert.NotNull(sanitizedListValue.L);
+        Assert.Equal(2, sanitizedListValue.L!.Count);
+        Assert.Equal("field-1", sanitizedListValue.L![0].M!["fieldId"].S);
     }
 }

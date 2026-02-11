@@ -53,6 +53,7 @@ internal static class DynamoAttributeBuilder
         return sanitized;
     }
 
+    // needed as DynamoDB rejects empty strings, empty sets, and empty maps
     private static AttributeValue SanitizeAttributeValue(AttributeValue value, bool applyStringLimit)
     {
         if (value == null)
@@ -72,25 +73,24 @@ internal static class DynamoAttributeBuilder
             return value;
         }
 
-        if (value.M != null)
+        if (value.M != null && value.M.Count > 0)
         {
-            if (value.M.Count == 0)
-            {
-                return new AttributeValue { NULL = true };
-            }
-
             return new AttributeValue { M = SanitizeAttributes(value.M, false) };
         }
 
-        if (value.L != null)
+        if (value.L != null && value.L.Count > 0)
         {
-            if (value.L.Count == 0)
+            for (var i = 0; i < value.L.Count; i++)
             {
-                return new AttributeValue { NULL = true };
+                value.L[i] = SanitizeAttributeValue(value.L[i], true);
             }
 
-            var sanitizedList = value.L.Select(item => SanitizeAttributeValue(item, true)).ToList();
-            return new AttributeValue { L = sanitizedList };
+            return value;
+        }
+
+        if (value.M != null || value.L != null)
+        {
+            return new AttributeValue { NULL = true };
         }
 
         if (value.SS != null)
