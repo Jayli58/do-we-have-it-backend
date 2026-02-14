@@ -1,4 +1,5 @@
 using Amazon.DynamoDBv2;
+using Amazon.Lambda.AspNetCoreServer.Hosting;
 using DoWeHaveItApp.Infrastructure;
 using DoWeHaveItApp.Repositories;
 using DoWeHaveItApp.Services;
@@ -6,6 +7,8 @@ using DoWeHaveItApp.Extensions;
 using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddAWSLambdaHosting(LambdaEventSource.HttpApi);
 
 // Add services to the container.
 
@@ -43,6 +46,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseRouting();
 
 app.UseCors(CorsExtensions.GetPolicyName());
 
