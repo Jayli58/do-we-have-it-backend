@@ -27,7 +27,6 @@ export class ApiStack extends cdk.Stack {
         const cognitoRegion = ssm.StringParameter.valueForStringParameter(this, `${apiConfig.Ssm__BasePath}/cognito/region`);
 
         // lambda
-        // todo
         const myAppRoot = process.env.MYAPP_ROOT ?? '../backend';
         const apiFn = new lambda.Function(this, 'DWHIApiFn', {
             runtime: lambda.Runtime.DOTNET_8,
@@ -36,13 +35,14 @@ export class ApiStack extends cdk.Stack {
             memorySize: 1536,
             timeout: cdk.Duration.seconds(10),
 
-            // todo: integrate with CI later
+            // integrate with CI later
             code: lambda.Code.fromAsset(
                 path.resolve(process.cwd(), myAppRoot, 'bin/lambda-publish')
             ),
 
             environment: {
                 ...apiConfig,
+                DynamoDB__UseLocal: String(apiConfig.DynamoDB__UseLocal),
                 // override cognito params
                 Cognito__Region: cognitoRegion,
                 Cognito__UserPoolId: userPoolId,
@@ -154,7 +154,6 @@ export class ApiStack extends cdk.Stack {
             throttlingBurstLimit: 10,
         }
 
-        // new cdk.CfnOutput(this, 'TodoApiUrl', { value: httpApi.apiEndpoint });
         new ssm.StringParameter(this, "DWHIApiUrlParam", {
             parameterName: "/dwhiapp/api/url",
             stringValue: `https://${apiConfig.Domain}`,
