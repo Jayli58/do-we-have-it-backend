@@ -9,7 +9,7 @@ import * as logs from 'aws-cdk-lib/aws-logs';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ssm from "aws-cdk-lib/aws-ssm";
-import {ddbParam} from "./dynamodb-param-helper";
+import { ddbParam } from "./dynamodb-param-helper";
 import * as acm from "aws-cdk-lib/aws-certificatemanager";
 import { apiConfig } from '../config/backend/config.api';
 
