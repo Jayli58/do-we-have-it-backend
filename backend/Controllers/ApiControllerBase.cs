@@ -7,11 +7,23 @@ namespace DoWeHaveItApp.Controllers;
 [ApiController]
 public abstract class ApiControllerBase : ControllerBase
 {
-    // Get user ID from header
-    protected string UserId => HttpContext.Request.Headers.TryGetValue("X-User-Id", out var values) &&
-                               !string.IsNullOrWhiteSpace(values)
-        ? values.ToString()
-        : "demo-user";
+    // Get user ID from JWT claim, fallback to header or demo user
+    protected string UserId
+    {
+        get
+        {
+            var claimValue = HttpContext.User.FindFirst("sub")?.Value;
+            if (!string.IsNullOrWhiteSpace(claimValue))
+            {
+                return claimValue;
+            }
+
+            return HttpContext.Request.Headers.TryGetValue("X-User-Id", out var values) &&
+                   !string.IsNullOrWhiteSpace(values)
+                ? values.ToString()
+                : "demo-user";
+        }
+    }
 
     // Error handling
     // Need try catch blocks in controllers to convert exceptions into HTTP responses

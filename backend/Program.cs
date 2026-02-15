@@ -18,6 +18,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 // Configure CORS
 builder.Services.AddMyCors(builder.Configuration);
+// Configure Cognito authentication
+builder.Services.AddCognitoAuth(builder.Configuration);
 
 // Configure DynamoDB
 builder.Services.Configure<DynamoDbOptions>(builder.Configuration.GetSection("DynamoDb"));
@@ -51,6 +53,7 @@ app.UseRouting();
 
 app.UseCors(CorsExtensions.GetPolicyName());
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
