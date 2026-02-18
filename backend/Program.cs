@@ -1,5 +1,6 @@
 using Amazon.DynamoDBv2;
 using Amazon.Lambda.AspNetCoreServer.Hosting;
+using DoWeHaveItApp.Exceptions;
 using DoWeHaveItApp.Infrastructure;
 using DoWeHaveItApp.Repositories;
 using DoWeHaveItApp.Services;
@@ -38,6 +39,11 @@ builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<ITemplateService, TemplateService>();
 builder.Services.AddScoped<ISearchService, SearchService>();
 
+// Register global exception handler
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+// Register ProblemDetails middleware
+builder.Services.AddProblemDetails();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -46,6 +52,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+// Use custom exception handler middleware
+app.UseExceptionHandler();
 
 app.UseHttpsRedirection();
 
