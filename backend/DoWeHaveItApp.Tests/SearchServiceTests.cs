@@ -160,4 +160,29 @@ public sealed class SearchServiceTests
         Assert.Equal("牛奶", firstResults.Items[0].Name);
         Assert.Equal("牛奶", secondResults.Items[0].Name);
     }
+
+    [Fact]
+    public async Task SearchItemsAsync_ReturnsMatchesForMixedCjkTokens()
+    {
+        var repository = new InMemoryInventoryRepository();
+        var inventoryService = new InventoryService(repository);
+        var searchService = new SearchService(repository);
+
+        await inventoryService.CreateItemAsync(UserId, new CreateItemRequest
+        {
+            Name = "PP测试",
+            Comments = string.Empty,
+            ParentId = "kitchen",
+            Attributes = new List<ItemAttributeDto>(),
+        });
+
+        var queryResults = await searchService.SearchItemsAsync(UserId, "测试");
+        var firstResults = await searchService.SearchItemsAsync(UserId, "测");
+        var secondResults = await searchService.SearchItemsAsync(UserId, "试");
+
+        Assert.Single(queryResults.Items);
+        Assert.Single(firstResults.Items);
+        Assert.Single(secondResults.Items);
+        Assert.Equal("PP测试", queryResults.Items[0].Name);
+    }
 }

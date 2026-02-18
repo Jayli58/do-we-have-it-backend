@@ -22,10 +22,15 @@ public sealed class Tokenizer
             foreach (var token in normalized.Split(' ', StringSplitOptions.RemoveEmptyEntries))
             {
                 tokens.Add(token);
-                // if token contains cjk (Chinese, Japanese, Korean), add each character as a token
-                if (ContainsCjk(token))
+                foreach (var segment in SplitToken(token))
                 {
-                    foreach (var character in token)
+                    tokens.Add(segment);
+                    if (!ContainsCjk(segment))
+                    {
+                        continue;
+                    }
+
+                    foreach (var character in segment)
                     {
                         if (IsCjk(character))
                         {
@@ -41,6 +46,31 @@ public sealed class Tokenizer
 
     private static bool ContainsCjk(string token)
         => token.Any(IsCjk);
+
+    private static IEnumerable<string> SplitToken(string token)
+    {
+        if (token.Length == 0)
+        {
+            yield break;
+        }
+
+        var start = 0;
+        var inCjk = IsCjk(token[0]);
+        for (var index = 1; index < token.Length; index += 1)
+        {
+            var currentIsCjk = IsCjk(token[index]);
+            if (currentIsCjk == inCjk)
+            {
+                continue;
+            }
+
+            yield return token[start..index];
+            start = index;
+            inCjk = currentIsCjk;
+        }
+
+        yield return token[start..];
+    }
 
     private static bool IsCjk(char character)
     {
