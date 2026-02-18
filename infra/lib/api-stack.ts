@@ -66,7 +66,7 @@ export class ApiStack extends cdk.Stack {
 
         // allow lambda to query GSI
         apiFn.addToRolePolicy(new iam.PolicyStatement({
-            actions: ['dynamodb:Query'],
+            actions: ['dynamodb:Query', 'dynamodb:Scan'],
             resources: [`${inventoryTable.tableArn}/index/GSI1`],
         }));
 
