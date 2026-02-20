@@ -1,0 +1,33 @@
+name: Upload infra artifacts needed by backend pipeline
+
+on:
+  push:
+    branches:
+      - main
+    # trigger only when infra code / workflow changes
+    paths:
+      - infra/**
+      - .github/workflows/upload-infra-artifacts.yml
+
+jobs:
+  upload-artifacts:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout infra
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Create infra zip
+        run: zip -r "${{ vars.PIPELINE_INFRA_KEY }}" . -x "node_modules/**" "cdk.out/**" ".git/**"
+        working-directory: infra
+
+      - name: Upload infra zip
+        run: aws s3 cp "${{ vars.PIPELINE_INFRA_KEY }}" "s3://${{ vars.PIPELINE_SOURCE_BUCKET }}/${{ vars.PIPELINE_INFRA_KEY }}"
