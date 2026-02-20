@@ -38,7 +38,7 @@ jobs:
 
       # package published artifact into a zip file
       - name: Package backend source
-        run: zip -r ${{ env.S3_KEY }} backend/DoWeHaveItApp/bin/lambda-publish
+        run: zip -r ${{ env.S3_KEY }} backend/bin/lambda-publish
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
