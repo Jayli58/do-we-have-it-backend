@@ -34,7 +34,7 @@ jobs:
         run: dotnet test backend/DoWeHaveItApp.Tests/DoWeHaveItApp.Tests.csproj -c Release --no-restore --filter "FullyQualifiedName!~Integration"
 
       - name: Publish DWHI App
-        run: dotnet publish backend/DoWeHaveItApp/DoWeHaveItApp.csproj -c Release -o backend/DoWeHaveItApp/bin/lambda-publish --no-restore
+        run: dotnet publish backend/DoWeHaveItApp.csproj -c Release -o backend/bin/lambda-publish --no-restore
 
       # package published artifact into a zip file
       - name: Package backend source
