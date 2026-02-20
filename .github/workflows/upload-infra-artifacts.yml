@@ -31,3 +31,4 @@ jobs:
 
       - name: Upload infra zip
         run: aws s3 cp "${{ vars.PIPELINE_INFRA_KEY }}" "s3://${{ vars.PIPELINE_SOURCE_BUCKET }}/${{ vars.PIPELINE_INFRA_KEY }}"
+        working-directory: infra
