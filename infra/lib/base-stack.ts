@@ -1,13 +1,16 @@
 import * as cdk from 'aws-cdk-lib/core';
 import { Construct } from 'constructs';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
+import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as ssm from "aws-cdk-lib/aws-ssm";
 import { dynamodbConfig } from '../config/backend/config.dynamodb';
 import { ddbParam } from './dynamodb-param-helper';
+import { s3Param } from './s3-param-helper';
 
 
 export class BaseStack extends cdk.Stack {
   public readonly inventoryTable: dynamodb.Table;
+  public readonly imageBucket: s3.Bucket;
 
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, {
@@ -51,6 +54,22 @@ export class BaseStack extends cdk.Stack {
     new ssm.StringParameter(this, "DWHIInventoryTableArnParam", {
       parameterName: ddbParam("inventory", "arn"),
       stringValue: this.inventoryTable.tableArn,
+    });
+
+    // Create s3 bucket for images
+    this.imageBucket = new s3.Bucket(this, 'DWHIImageBucket', {
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      encryption: s3.BucketEncryption.S3_MANAGED,
+    });
+
+    new ssm.StringParameter(this, "DWHIImageBucketArnParam", {
+      parameterName: s3Param("images", "arn"),
+      stringValue: this.imageBucket.bucketArn,
+    });
+
+    new ssm.StringParameter(this, "DWHIImageBucketNameParam", {
+      parameterName: s3Param("images", "name"),
+      stringValue: this.imageBucket.bucketName,
     });
   }
 }

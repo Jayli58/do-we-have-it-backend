@@ -11,6 +11,7 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as ssm from "aws-cdk-lib/aws-ssm";
 import { ddbParam } from "./dynamodb-param-helper";
+import { s3Param } from "./s3-param-helper";
 import * as acm from "aws-cdk-lib/aws-certificatemanager";
 import { apiConfig } from '../config/backend/config.api';
 
@@ -61,13 +62,15 @@ export class ApiStack extends cdk.Stack {
 
         inventoryTable.grantReadWriteData(apiFn);
 
-        const imageBucket = new s3.Bucket(this, 'DWHIImageBucket', {
-            blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-            encryption: s3.BucketEncryption.S3_MANAGED,
+        const imageBucketArn = ssm.StringParameter.valueForStringParameter(this, s3Param("images", "arn"));
+        const imageBucketName = ssm.StringParameter.valueForStringParameter(this, s3Param("images", "name"));
+        const imageBucket = s3.Bucket.fromBucketAttributes(this, "DWHIImageBucket", {
+            bucketArn: imageBucketArn,
+            bucketName: imageBucketName,
         });
 
         imageBucket.grantReadWrite(apiFn);
-        apiFn.addEnvironment('S3__ImageBucket', imageBucket.bucketName);
+        apiFn.addEnvironment('S3__ImageBucket', imageBucketName);
         apiFn.addEnvironment('S3__Region', this.region);
 
         apiFn.addToRolePolicy(new iam.PolicyStatement({
