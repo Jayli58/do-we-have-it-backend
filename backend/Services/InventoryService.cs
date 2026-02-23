@@ -114,8 +114,19 @@ public sealed class InventoryService : IInventoryService
         await DeleteFolderRecursiveAsync(userId, existing);
     }
 
-    public async Task<ItemDto> CreateItemAsync(string userId, CreateItemRequest request)
+    public async Task<ItemDto> CreateItemAsync(CreateItemContext context)
     {
+        if (string.IsNullOrWhiteSpace(context.UserId))
+        {
+            throw new ApiException(400, "validation_error", "User id is required.");
+        }
+
+        if (context.Request == null)
+        {
+            throw new ApiException(400, "validation_error", "Item request is required.");
+        }
+
+        var request = context.Request;
         if (string.IsNullOrWhiteSpace(request.Name))
         {
             throw new ApiException(400, "validation_error", "Item name is required.");
@@ -124,20 +135,26 @@ public sealed class InventoryService : IInventoryService
         var timestamp = DateTime.UtcNow.ToString("O");
         var item = new Item
         {
-            Id = $"item-{Guid.NewGuid():N}",
+            Id = string.IsNullOrWhiteSpace(context.ItemId) ? $"item-{Guid.NewGuid():N}" : context.ItemId,
             Name = request.Name.Trim(),
             Comments = request.Comments?.Trim() ?? string.Empty,
             ParentId = request.ParentId,
-            Attributes = request.Attributes.Select(DtoMapper.ToModel).ToList(),
+            Attributes = (request.Attributes ?? Array.Empty<ItemAttributeDto>()).Select(DtoMapper.ToModel).ToList(),
             CreatedAt = timestamp,
             UpdatedAt = timestamp,
+            ImageName = context.ImageName,
+            ImageS3Key = context.ImageS3Key,
         };
 
-        await _repository.CreateItemAsync(userId, item);
+        await _repository.CreateItemAsync(context.UserId, item);
         return DtoMapper.ToDto(item);
     }
 
-    public async Task<ItemDto> UpdateItemAsync(string userId, UpdateItemRequest request)
+    public async Task<ItemDto> UpdateItemAsync(
+        string userId,
+        UpdateItemRequest request,
+        string? imageName = null,
+        string? imageS3Key = null)
     {
         if (string.IsNullOrWhiteSpace(request.Name))
         {
@@ -150,15 +167,31 @@ public sealed class InventoryService : IInventoryService
             throw new ApiException(404, "not_found", "Item not found.");
         }
 
+        var updatedImageName = existing.ImageName;
+        var updatedImageS3Key = existing.ImageS3Key;
+
+        if (!string.IsNullOrWhiteSpace(imageS3Key))
+        {
+            updatedImageName = imageName;
+            updatedImageS3Key = imageS3Key;
+        }
+        else if (request.ImageRemoved == true)
+        {
+            updatedImageName = null;
+            updatedImageS3Key = null;
+        }
+
         var updated = new Item
         {
             Id = existing.Id,
             Name = request.Name.Trim(),
             Comments = request.Comments?.Trim() ?? string.Empty,
             ParentId = request.ParentId,
-            Attributes = request.Attributes.Select(DtoMapper.ToModel).ToList(),
+            Attributes = (request.Attributes ?? Array.Empty<ItemAttributeDto>()).Select(DtoMapper.ToModel).ToList(),
             CreatedAt = existing.CreatedAt,
             UpdatedAt = DateTime.UtcNow.ToString("O"),
+            ImageName = updatedImageName,
+            ImageS3Key = updatedImageS3Key,
         };
 
         await _repository.UpdateItemAsync(userId, updated);
@@ -168,13 +201,19 @@ public sealed class InventoryService : IInventoryService
 
     public async Task<ItemDto> GetItemAsync(string userId, string itemId)
     {
+        var item = await GetItemModelAsync(userId, itemId);
+        return DtoMapper.ToDto(item);
+    }
+
+    public async Task<Item> GetItemModelAsync(string userId, string itemId)
+    {
         var item = await _repository.GetItemByIdAsync(userId, itemId);
         if (item == null)
         {
             throw new ApiException(404, "not_found", "Item not found.");
         }
 
-        return DtoMapper.ToDto(item);
+        return item;
     }
 
     public async Task DeleteItemAsync(string userId, string itemId, string? parentId)

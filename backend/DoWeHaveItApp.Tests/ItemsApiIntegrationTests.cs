@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 using Xunit;
 
@@ -32,20 +33,21 @@ public sealed class ItemsApiIntegrationTests : IClassFixture<DynamoDbFixture>
 
         client.DefaultRequestHeaders.Add("X-User-Id", userId);
 
-        var payload = new
+        var attributePayload = new[]
         {
-            name = "item1",
-            comments = string.Empty,
-            parentId = (string?)null,
-            attributes = new[]
-            {
-                new { fieldId = "field-mlhlmsvk-bvl4", fieldName = "f1", value = "f1" },
-                new { fieldId = "field-mlhlmynm-46gi", fieldName = "f2", value = "f2" },
-                new { fieldId = "field-mlhln0jf-ppco", fieldName = "f3", value = "f3" },
-            },
+            new { fieldId = "field-mlhlmsvk-bvl4", fieldName = "f1", value = "f1" },
+            new { fieldId = "field-mlhlmynm-46gi", fieldName = "f2", value = "f2" },
+            new { fieldId = "field-mlhln0jf-ppco", fieldName = "f3", value = "f3" },
         };
 
-        var response = await client.PostAsJsonAsync("/items", payload, JsonOptions);
+        using var form = new MultipartFormDataContent
+        {
+            { new StringContent("item1"), "name" },
+            { new StringContent(string.Empty), "comments" },
+            { new StringContent(JsonSerializer.Serialize(attributePayload, JsonOptions), Encoding.UTF8, "application/json"), "attributes" },
+        };
+
+        var response = await client.PostAsync("/items", form);
 
         response.EnsureSuccessStatusCode();
 

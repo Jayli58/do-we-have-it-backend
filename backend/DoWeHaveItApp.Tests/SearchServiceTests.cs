@@ -15,20 +15,28 @@ public sealed class SearchServiceTests
         var inventoryService = new InventoryService(repository);
         var searchService = new SearchService(repository);
 
-        await inventoryService.CreateItemAsync(UserId, new CreateItemRequest
+        await inventoryService.CreateItemAsync(new CreateItemContext
         {
-            Name = "Coffee Maker",
-            Comments = "Top shelf",
-            ParentId = "kitchen",
-            Attributes = new List<ItemAttributeDto>(),
+            UserId = UserId,
+            Request = new CreateItemRequest
+            {
+                Name = "Coffee Maker",
+                Comments = "Top shelf",
+                ParentId = "kitchen",
+                Attributes = new List<ItemAttributeDto>(),
+            },
         });
 
-        await inventoryService.CreateItemAsync(UserId, new CreateItemRequest
+        await inventoryService.CreateItemAsync(new CreateItemContext
         {
-            Name = "Cordless Drill",
-            Comments = "Garage drawer",
-            ParentId = "garage",
-            Attributes = new List<ItemAttributeDto>(),
+            UserId = UserId,
+            Request = new CreateItemRequest
+            {
+                Name = "Cordless Drill",
+                Comments = "Garage drawer",
+                ParentId = "garage",
+                Attributes = new List<ItemAttributeDto>(),
+            },
         });
 
         var results = await searchService.SearchItemsAsync(UserId, "coffee maker");
@@ -44,12 +52,16 @@ public sealed class SearchServiceTests
         var inventoryService = new InventoryService(repository);
         var searchService = new SearchService(repository);
 
-        await inventoryService.CreateItemAsync(UserId, new CreateItemRequest
+        await inventoryService.CreateItemAsync(new CreateItemContext
         {
-            Name = "Coffee Maker",
-            Comments = "Top shelf",
-            ParentId = "kitchen",
-            Attributes = new List<ItemAttributeDto>(),
+            UserId = UserId,
+            Request = new CreateItemRequest
+            {
+                Name = "Coffee Maker",
+                Comments = "Top shelf",
+                ParentId = "kitchen",
+                Attributes = new List<ItemAttributeDto>(),
+            },
         });
 
         var results = await searchService.SearchItemsAsync(UserId, "coffee makerr");
@@ -75,12 +87,16 @@ public sealed class SearchServiceTests
         var inventoryService = new InventoryService(repository);
         var searchService = new SearchService(repository);
 
-        await inventoryService.CreateItemAsync(UserId, new CreateItemRequest
+        await inventoryService.CreateItemAsync(new CreateItemContext
         {
-            Name = "vdsvew",
-            Comments = "",
-            ParentId = "garage",
-            Attributes = new List<ItemAttributeDto>(),
+            UserId = UserId,
+            Request = new CreateItemRequest
+            {
+                Name = "vdsvew",
+                Comments = "",
+                ParentId = "garage",
+                Attributes = new List<ItemAttributeDto>(),
+            },
         });
 
         var results = await searchService.SearchItemsAsync(UserId, "vds");
@@ -96,12 +112,16 @@ public sealed class SearchServiceTests
         var inventoryService = new InventoryService(repository);
         var searchService = new SearchService(repository);
 
-        await inventoryService.CreateItemAsync(UserId, new CreateItemRequest
+        await inventoryService.CreateItemAsync(new CreateItemContext
         {
-            Name = "vdsvew",
-            Comments = "",
-            ParentId = "garage",
-            Attributes = new List<ItemAttributeDto>(),
+            UserId = UserId,
+            Request = new CreateItemRequest
+            {
+                Name = "vdsvew",
+                Comments = "",
+                ParentId = "garage",
+                Attributes = new List<ItemAttributeDto>(),
+            },
         });
 
         var results = await searchService.SearchItemsAsync(UserId, "vdsw");
@@ -116,20 +136,28 @@ public sealed class SearchServiceTests
         var inventoryService = new InventoryService(repository);
         var searchService = new SearchService(repository);
 
-        await inventoryService.CreateItemAsync(UserId, new CreateItemRequest
+        await inventoryService.CreateItemAsync(new CreateItemContext
         {
-            Name = "Coffee Maker",
-            Comments = "Top shelf",
-            ParentId = "kitchen",
-            Attributes = new List<ItemAttributeDto>(),
+            UserId = UserId,
+            Request = new CreateItemRequest
+            {
+                Name = "Coffee Maker",
+                Comments = "Top shelf",
+                ParentId = "kitchen",
+                Attributes = new List<ItemAttributeDto>(),
+            },
         });
 
-        await inventoryService.CreateItemAsync(UserId, new CreateItemRequest
+        await inventoryService.CreateItemAsync(new CreateItemContext
         {
-            Name = "Coffee Filters",
-            Comments = "Pantry",
-            ParentId = "garage",
-            Attributes = new List<ItemAttributeDto>(),
+            UserId = UserId,
+            Request = new CreateItemRequest
+            {
+                Name = "Coffee Filters",
+                Comments = "Pantry",
+                ParentId = "garage",
+                Attributes = new List<ItemAttributeDto>(),
+            },
         });
 
         var results = await searchService.SearchItemsAsync(UserId, "coffee");
@@ -144,12 +172,16 @@ public sealed class SearchServiceTests
         var inventoryService = new InventoryService(repository);
         var searchService = new SearchService(repository);
 
-        await inventoryService.CreateItemAsync(UserId, new CreateItemRequest
+        await inventoryService.CreateItemAsync(new CreateItemContext
         {
-            Name = "牛奶",
-            Comments = string.Empty,
-            ParentId = "kitchen",
-            Attributes = new List<ItemAttributeDto>(),
+            UserId = UserId,
+            Request = new CreateItemRequest
+            {
+                Name = "牛奶",
+                Comments = string.Empty,
+                ParentId = "kitchen",
+                Attributes = new List<ItemAttributeDto>(),
+            },
         });
 
         var firstResults = await searchService.SearchItemsAsync(UserId, "牛");
@@ -168,12 +200,16 @@ public sealed class SearchServiceTests
         var inventoryService = new InventoryService(repository);
         var searchService = new SearchService(repository);
 
-        await inventoryService.CreateItemAsync(UserId, new CreateItemRequest
+        await inventoryService.CreateItemAsync(new CreateItemContext
         {
-            Name = "PP测试",
-            Comments = string.Empty,
-            ParentId = "kitchen",
-            Attributes = new List<ItemAttributeDto>(),
+            UserId = UserId,
+            Request = new CreateItemRequest
+            {
+                Name = "PP测试",
+                Comments = string.Empty,
+                ParentId = "kitchen",
+                Attributes = new List<ItemAttributeDto>(),
+            },
         });
 
         var queryResults = await searchService.SearchItemsAsync(UserId, "测试");

@@ -9,4 +9,6 @@ public sealed class Item
     public required List<ItemAttribute> Attributes { get; set; }
     public required string CreatedAt { get; set; }
     public required string UpdatedAt { get; set; }
+    public string? ImageName { get; set; }
+    public string? ImageS3Key { get; set; }
 }

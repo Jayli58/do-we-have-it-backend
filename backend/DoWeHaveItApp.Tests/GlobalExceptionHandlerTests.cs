@@ -81,17 +81,26 @@ public sealed class StubInventoryService : IInventoryService
         throw new NotImplementedException();
     }
 
-    public Task<ItemDto> CreateItemAsync(string userId, CreateItemRequest request)
+    public Task<ItemDto> CreateItemAsync(CreateItemContext context)
     {
         throw new NotImplementedException();
     }
 
-    public Task<ItemDto> UpdateItemAsync(string userId, UpdateItemRequest request)
+    public Task<ItemDto> UpdateItemAsync(
+        string userId,
+        UpdateItemRequest request,
+        string? imageName = null,
+        string? imageS3Key = null)
     {
         throw new NotImplementedException();
     }
 
     public Task<ItemDto> GetItemAsync(string userId, string itemId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<DoWeHaveItApp.Models.Item> GetItemModelAsync(string userId, string itemId)
     {
         throw new NotImplementedException();
     }

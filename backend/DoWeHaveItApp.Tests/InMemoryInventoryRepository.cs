@@ -183,6 +183,8 @@ public sealed class InMemoryInventoryRepository : IInventoryRepository
         }).ToList(),
         CreatedAt = item.CreatedAt,
         UpdatedAt = item.UpdatedAt,
+        ImageName = item.ImageName,
+        ImageS3Key = item.ImageS3Key,
     };
 
     private static FormTemplate CloneTemplate(FormTemplate template) => new()

@@ -408,6 +408,8 @@ public sealed class DynamoInventoryRepository : IInventoryRepository
         };
 
         DynamoAttributeBuilder.AddOptionalStringAttribute(record, "comments", item.Comments);
+        DynamoAttributeBuilder.AddOptionalStringAttribute(record, "imageName", item.ImageName);
+        DynamoAttributeBuilder.AddOptionalStringAttribute(record, "imageS3Key", item.ImageS3Key);
 
         if (attributes.Count > 0)
         {
@@ -623,6 +625,8 @@ public sealed class DynamoInventoryRepository : IInventoryRepository
             Attributes = attributes,
             CreatedAt = GetString(item, "createdAt"),
             UpdatedAt = GetString(item, "updatedAt"),
+            ImageName = GetOptionalString(item, "imageName"),
+            ImageS3Key = GetOptionalString(item, "imageS3Key"),
         };
     }
 
@@ -660,5 +664,12 @@ public sealed class DynamoInventoryRepository : IInventoryRepository
     private static string GetString(Dictionary<string, AttributeValue> item, string key)
     {
         return item.TryGetValue(key, out var value) ? value.S ?? string.Empty : string.Empty;
+    }
+
+    // return null for missing dynamoDB attributes instead of empty strings
+    private static string? GetOptionalString(Dictionary<string, AttributeValue> item, string key)
+    {
+        var value = GetString(item, key);
+        return string.IsNullOrWhiteSpace(value) ? null : value;
     }
 }

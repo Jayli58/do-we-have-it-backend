@@ -37,12 +37,16 @@ public sealed class InventoryServiceTests
         var repository = new InMemoryInventoryRepository();
         var service = new InventoryService(repository);
 
-        var created = await service.CreateItemAsync(UserId, new CreateItemRequest
+        var created = await service.CreateItemAsync(new CreateItemContext
         {
-            Name = "Coffee Maker",
-            Comments = "Top shelf",
-            ParentId = "folder-a",
-            Attributes = new List<ItemAttributeDto>(),
+            UserId = UserId,
+            Request = new CreateItemRequest
+            {
+                Name = "Coffee Maker",
+                Comments = "Top shelf",
+                ParentId = "folder-a",
+                Attributes = new List<ItemAttributeDto>(),
+            },
         });
 
         var updated = await service.UpdateItemAsync(UserId, new UpdateItemRequest
@@ -91,20 +95,28 @@ public sealed class InventoryServiceTests
             ParentId = parent.Id,
         });
 
-        await service.CreateItemAsync(UserId, new CreateItemRequest
+        await service.CreateItemAsync(new CreateItemContext
         {
-            Name = "Toaster",
-            Comments = "Bottom shelf",
-            ParentId = parent.Id,
-            Attributes = new List<ItemAttributeDto>(),
+            UserId = UserId,
+            Request = new CreateItemRequest
+            {
+                Name = "Toaster",
+                Comments = "Bottom shelf",
+                ParentId = parent.Id,
+                Attributes = new List<ItemAttributeDto>(),
+            },
         });
 
-        await service.CreateItemAsync(UserId, new CreateItemRequest
+        await service.CreateItemAsync(new CreateItemContext
         {
-            Name = "Blender",
-            Comments = "Top shelf",
-            ParentId = child.Id,
-            Attributes = new List<ItemAttributeDto>(),
+            UserId = UserId,
+            Request = new CreateItemRequest
+            {
+                Name = "Blender",
+                Comments = "Top shelf",
+                ParentId = child.Id,
+                Attributes = new List<ItemAttributeDto>(),
+            },
         });
 
         await service.DeleteFolderAsync(UserId, parent.Id);

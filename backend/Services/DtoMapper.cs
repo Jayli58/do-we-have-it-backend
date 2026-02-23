@@ -30,6 +30,9 @@ public static class DtoMapper
         Attributes = item.Attributes.Select(ToDto).ToList(),
         CreatedAt = item.CreatedAt,
         UpdatedAt = item.UpdatedAt,
+        Image = string.IsNullOrWhiteSpace(item.ImageName)
+            ? null
+            : new ImageInfo { Name = item.ImageName },
     };
 
     public static FormFieldDto ToDto(FormField field) => new()

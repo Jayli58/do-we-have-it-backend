@@ -9,4 +9,5 @@ public sealed class ItemDto
     public required IReadOnlyList<ItemAttributeDto> Attributes { get; init; }
     public required string CreatedAt { get; init; }
     public required string UpdatedAt { get; init; }
+    public ImageInfo? Image { get; init; }
 }

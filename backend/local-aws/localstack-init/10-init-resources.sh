@@ -27,4 +27,10 @@ awslocal dynamodb create-table \
   --billing-mode PAY_PER_REQUEST \
   >/dev/null 2>&1 || echo "[init] Inventory already exists"
 
+echo "[init] Creating image bucket..."
+
+# create s3 bucket for images
+# mb = make bucket
+awslocal s3 mb s3://dwhi-images >/dev/null 2>&1 || echo "[init] Image bucket already exists"
+
 echo "[init] Done."

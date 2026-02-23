@@ -8,6 +8,7 @@ import { HttpJwtAuthorizer } from 'aws-cdk-lib/aws-apigatewayv2-authorizers';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as ssm from "aws-cdk-lib/aws-ssm";
 import { ddbParam } from "./dynamodb-param-helper";
 import * as acm from "aws-cdk-lib/aws-certificatemanager";
@@ -43,6 +44,7 @@ export class ApiStack extends cdk.Stack {
             environment: {
                 ...apiConfig,
                 DynamoDB__UseLocal: String(apiConfig.DynamoDB__UseLocal),
+                S3__UseLocal: 'false',
                 // override cognito params
                 Cognito__Region: cognitoRegion,
                 Cognito__UserPoolId: userPoolId,
@@ -58,6 +60,15 @@ export class ApiStack extends cdk.Stack {
         });
 
         inventoryTable.grantReadWriteData(apiFn);
+
+        const imageBucket = new s3.Bucket(this, 'DWHIImageBucket', {
+            blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+            encryption: s3.BucketEncryption.S3_MANAGED,
+        });
+
+        imageBucket.grantReadWrite(apiFn);
+        apiFn.addEnvironment('S3__ImageBucket', imageBucket.bucketName);
+        apiFn.addEnvironment('S3__Region', this.region);
 
         apiFn.addToRolePolicy(new iam.PolicyStatement({
             actions: ['dynamodb:DescribeTable'],

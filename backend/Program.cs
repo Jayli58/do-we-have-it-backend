@@ -1,5 +1,6 @@
 using Amazon.DynamoDBv2;
 using Amazon.Lambda.AspNetCoreServer.Hosting;
+using Amazon.S3;
 using DoWeHaveItApp.Exceptions;
 using DoWeHaveItApp.Infrastructure;
 using DoWeHaveItApp.Repositories;
@@ -30,6 +31,13 @@ builder.Services.AddSingleton<IAmazonDynamoDB>(sp =>
     var options = sp.GetRequiredService<IOptions<DynamoDbOptions>>().Value;
     return DynamoDbClientFactory.Create(options);
 });
+// Configure S3
+builder.Services.Configure<S3Options>(builder.Configuration.GetSection("S3"));
+builder.Services.AddSingleton<IAmazonS3>(sp =>
+{
+    var options = sp.GetRequiredService<IOptions<S3Options>>().Value;
+    return S3ClientFactory.Create(options);
+});
 // Configure Tokenizer
 builder.Services.AddSingleton<Tokenizer>();
 // Configure repositories
@@ -38,6 +46,7 @@ builder.Services.AddScoped<IInventoryRepository, DynamoInventoryRepository>();
 builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<ITemplateService, TemplateService>();
 builder.Services.AddScoped<ISearchService, SearchService>();
+builder.Services.AddScoped<IImageService, S3ImageService>();
 
 // Register global exception handler
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();

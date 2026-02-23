@@ -51,7 +51,7 @@ public sealed class ItemsControllerTests
 
     private static ItemsController CreateController(ISearchService searchService, string userId)
     {
-        var controller = new ItemsController(new ThrowingInventoryService(), searchService)
+        var controller = new ItemsController(new ThrowingInventoryService(), searchService, new ThrowingImageService())
         {
             ControllerContext = new ControllerContext
             {
@@ -104,12 +104,12 @@ public sealed class ItemsControllerTests
             throw new NotImplementedException();
         }
 
-        public Task<ItemDto> CreateItemAsync(string userId, CreateItemRequest request)
+        public Task<ItemDto> CreateItemAsync(CreateItemContext context)
         {
             throw new NotImplementedException();
         }
 
-        public Task<ItemDto> UpdateItemAsync(string userId, UpdateItemRequest request)
+        public Task<ItemDto> UpdateItemAsync(string userId, UpdateItemRequest request, string? imageName, string? imageS3Key)
         {
             throw new NotImplementedException();
         }
@@ -119,7 +119,30 @@ public sealed class ItemsControllerTests
             throw new NotImplementedException();
         }
 
+        public Task<DoWeHaveItApp.Models.Item> GetItemModelAsync(string userId, string itemId)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task DeleteItemAsync(string userId, string itemId, string? parentId)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    private sealed class ThrowingImageService : IImageService
+    {
+        public Task<string> UploadAsync(ImageUploadRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<(Stream Stream, string ContentType, string FileName)> DownloadAsync(ImageDownloadRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task DeleteAsync(string userId, string s3Key)
         {
             throw new NotImplementedException();
         }
