@@ -4,7 +4,9 @@ using DoWeHaveItApp.Dtos;
 using DoWeHaveItApp.Infrastructure;
 using DoWeHaveItApp.Services;
 using Microsoft.Extensions.Options;
-using SkiaSharp;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.PixelFormats;
 using System.Net;
 using Xunit;
 
@@ -93,10 +95,11 @@ public sealed class S3ImageServiceIntegrationTests : IClassFixture<S3ImageFixtur
 
     private static Stream CreateImageStream()
     {
-        using var bitmap = new SKBitmap(1, 1);
-        using var image = SKImage.FromBitmap(bitmap);
-        using var data = image.Encode(SKEncodedImageFormat.Png, 80);
-        return new MemoryStream(data.ToArray());
+        using var image = new Image<Rgba32>(1, 1);
+        var stream = new MemoryStream();
+        image.Save(stream, new PngEncoder());
+        stream.Position = 0;
+        return stream;
     }
 }
 

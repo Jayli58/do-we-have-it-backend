@@ -88,7 +88,7 @@ public interface IImageService
 - Implements `IImageService` using `IAmazonS3`.
 - `UploadAsync`:
   1. Validate file size ≤ 10 MB, reject with 400 if exceeded.
-  2. Compress image to JPG using SkiaSharp (`SKBitmap` → `SKImage.Encode(SKEncodedImageFormat.Jpeg, 80)`).
+  2. Compress image to JPG using ImageSharp (`Image.Load` → `JpegEncoder` quality 80).
   3. PutObject the compressed stream to `{userId}/{itemId}/{name}.jpg` with `userId` metadata and `content-type: image/jpeg`.
 - `DownloadAsync`: GetObject, verifies `userId` metadata matches the caller.
 - `DeleteAsync`: GetObject metadata first to verify `userId` ownership, then DeleteObject.
@@ -98,7 +98,7 @@ public interface IImageService
 ### Infrastructure / Configuration
 
 #### [NEW] [S3Options.cs](file:///c:/Users/Lee58/source/repos/DoWeHaveItApp/backend/Infrastructure/S3Options.cs)
-- `ImageBucket` (string), `Region` (string), `UseLocal` (bool), `ServiceUrl` (string?).
+- `ImageBucket` (string), `Region` (string), `ImageJpegQuality` (int), `UseLocal` (bool), `ServiceUrl` (string?).
 
 #### [MODIFY] [Program.cs](file:///c:/Users/Lee58/source/repos/DoWeHaveItApp/backend/Program.cs)
 - Add `AWSSDK.S3` client registration (respect local/prod config like DynamoDB).
@@ -107,13 +107,13 @@ public interface IImageService
 
 #### [MODIFY] [DoWeHaveItApp.csproj](file:///c:/Users/Lee58/source/repos/DoWeHaveItApp/backend/DoWeHaveItApp.csproj)
 - Add `<PackageReference Include="AWSSDK.S3" ... />`.
-- Add `<PackageReference Include="SkiaSharp" ... />` for JPG compression.
+- Add `<PackageReference Include="SixLabors.ImageSharp" ... />` for JPG compression.
 
 #### [MODIFY] [appsettings.json](file:///c:/Users/Lee58/source/repos/DoWeHaveItApp/backend/appsettings.json)
-- Add `"S3"` section with `ImageBucket`, `Region`, `UseLocal`, `ServiceUrl`.
+- Add `"S3"` section with `ImageBucket`, `Region`, `ImageJpegQuality`, `UseLocal`, `ServiceUrl`.
 
 #### [MODIFY] [appsettings.Development.json](file:///c:/Users/Lee58/source/repos/DoWeHaveItApp/backend/appsettings.Development.json)
-- Add `"S3"` section pointing to LocalStack (`UseLocal: true`, `ServiceUrl: http://localhost:4566`).
+- Add `"S3"` section pointing to LocalStack (`UseLocal: true`, `ServiceUrl: http://localhost:4566`) and `ImageJpegQuality`.
 
 ---
 

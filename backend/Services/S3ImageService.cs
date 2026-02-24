@@ -3,7 +3,8 @@ using Amazon.S3.Model;
 using DoWeHaveItApp.Dtos;
 using DoWeHaveItApp.Infrastructure;
 using Microsoft.Extensions.Options;
-using SkiaSharp;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Jpeg;
 using System.Net;
 
 namespace DoWeHaveItApp.Services;
@@ -11,16 +12,18 @@ namespace DoWeHaveItApp.Services;
 public sealed class S3ImageService : IImageService
 {
     private const long MaxUploadBytes = 10 * 1024 * 1024;
-    private const int JpegQuality = 80;
+    private const int DefaultJpegQuality = 70;
     private const string JpegContentType = "image/jpeg";
 
     private readonly IAmazonS3 _client;
     private readonly S3Options _options;
+    private readonly int _jpegQuality;
 
     public S3ImageService(IAmazonS3 client, IOptions<S3Options> options)
     {
         _client = client;
         _options = options.Value;
+        _jpegQuality = NormalizeJpegQuality(_options.ImageJpegQuality);
     }
 
     public async Task<string> UploadAsync(ImageUploadRequest request)
@@ -52,21 +55,22 @@ public sealed class S3ImageService : IImageService
                 sourceStream.Position = 0;
             }
 
-            using var bitmap = SKBitmap.Decode(sourceStream);
-            if (bitmap == null)
-            {
-                throw new ApiException(400, "validation_error", "Invalid image upload.");
-            }
-
-            using var image = SKImage.FromBitmap(bitmap);
-            using var data = image.Encode(SKEncodedImageFormat.Jpeg, JpegQuality);
-            if (data == null)
-            {
-                throw new ApiException(400, "validation_error", "Invalid image upload.");
-            }
-
             var s3Key = BuildS3Key(request);
-            await using var uploadStream = new MemoryStream(data.ToArray());
+            await using var uploadStream = new MemoryStream();
+            try
+            {
+                using var image = Image.Load(sourceStream);
+                image.Save(uploadStream, new JpegEncoder
+                {
+                    Quality = _jpegQuality,
+                });
+            }
+            catch (UnknownImageFormatException)
+            {
+                throw new ApiException(400, "validation_error", "Invalid image upload.");
+            }
+
+            uploadStream.Position = 0;
 
             var putRequest = new PutObjectRequest
             {
@@ -155,6 +159,17 @@ public sealed class S3ImageService : IImageService
         {
             throw new ApiException(403, "forbidden", "You do not have access to this image.");
         }
+    }
+
+    // prevent invalid JPEG quality settings
+    private static int NormalizeJpegQuality(int quality)
+    {
+        if (quality == 0)
+        {
+            return DefaultJpegQuality;
+        }
+
+        return Math.Clamp(quality, 1, 100);
     }
 
     private static string? GetMetadataUserId(MetadataCollection metadata)

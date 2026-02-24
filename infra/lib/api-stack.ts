@@ -46,6 +46,7 @@ export class ApiStack extends cdk.Stack {
                 ...apiConfig,
                 DynamoDB__UseLocal: String(apiConfig.DynamoDB__UseLocal),
                 S3__UseLocal: 'false',
+                S3__ImageJpegQuality: '50',
                 // override cognito params
                 Cognito__Region: cognitoRegion,
                 Cognito__UserPoolId: userPoolId,
