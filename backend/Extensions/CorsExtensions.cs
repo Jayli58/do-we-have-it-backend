@@ -8,13 +8,15 @@ namespace DoWeHaveItApp.Extensions
     {
         private const string PolicyName = "AllowFrontend";
 
+        // we only need cors for local development,
+        // as the api gtw endpoint is wrapped by the frontend cloudfront in production, so we can skip it in that case
         public static IServiceCollection AddMyCors(this IServiceCollection services, IConfiguration config)
         {
-            var frontendUrl = config["Frontend:Url"] ?? "http://localhost:3000";
+            //var frontendUrl = config["Frontend:Url"] ?? "http://localhost:3000";
 
             var allowedOrigins = new[]
                 {
-                    frontendUrl,
+                    //frontendUrl,
                     "http://localhost:3000"
                 }
                 .Where(origin => !string.IsNullOrWhiteSpace(origin))
