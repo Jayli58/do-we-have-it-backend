@@ -409,7 +409,8 @@ public sealed class DynamoInventoryRepository : IInventoryRepository
 
         DynamoAttributeBuilder.AddOptionalStringAttribute(record, "comments", item.Comments);
         DynamoAttributeBuilder.AddOptionalStringAttribute(record, "imageName", item.ImageName);
-        DynamoAttributeBuilder.AddOptionalStringAttribute(record, "imageS3Key", item.ImageS3Key);
+        // allow long imageS3Key
+        DynamoAttributeBuilder.AddOptionalStringAttribute(record, "imageS3Key", item.ImageS3Key, applyLimit: false);
 
         if (attributes.Count > 0)
         {

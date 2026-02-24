@@ -141,7 +141,14 @@ public sealed class ItemsController : ApiControllerBase
             var existing = await _inventoryService.GetItemModelAsync(UserId, id);
             if (!string.IsNullOrWhiteSpace(existing.ImageS3Key))
             {
-                await _imageService.DeleteAsync(UserId, existing.ImageS3Key);
+                try
+                {
+                    await _imageService.DeleteAsync(UserId, existing.ImageS3Key);
+                }
+                catch (Exception)
+                {
+                    // Best-effort image deletion should not block item removal.
+                }
             }
 
             await _inventoryService.DeleteItemAsync(UserId, id, parentId);

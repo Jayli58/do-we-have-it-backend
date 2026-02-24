@@ -9,6 +9,8 @@ internal static class DynamoAttributeBuilder
     internal const int DefaultStringLimit = 100;
     private static readonly HashSet<string> SystemKeyAttributes =
         new(StringComparer.OrdinalIgnoreCase) { "PK", "SK", "GSI1PK", "GSI1SK" };
+    private static readonly HashSet<string> NoLimitAttributes =
+        new(StringComparer.OrdinalIgnoreCase) { "imageS3Key" };
 
     internal static AttributeValue BuildStringAttribute(string? value)
     {
@@ -24,14 +26,15 @@ internal static class DynamoAttributeBuilder
     internal static void AddOptionalStringAttribute(
         Dictionary<string, AttributeValue> attributes,
         string key,
-        string? value)
+        string? value,
+        bool applyLimit = true)
     {
         if (string.IsNullOrWhiteSpace(value))
         {
             return;
         }
 
-        attributes[key] = new AttributeValue { S = ApplyStringLimit(value) };
+        attributes[key] = new AttributeValue { S = applyLimit ? ApplyStringLimit(value) : value };
     }
 
     // This method ensures that any empty strings, empty sets, or empty maps are converted to DynamoDB's NULL representation.
@@ -46,7 +49,8 @@ internal static class DynamoAttributeBuilder
         var sanitized = new Dictionary<string, AttributeValue>(attributes.Count);
         foreach (var (key, value) in attributes)
         {
-            var applyLimit = !skipSystemKeyLimit || !SystemKeyAttributes.Contains(key);
+            var applyLimit = (!skipSystemKeyLimit || !SystemKeyAttributes.Contains(key))
+                && !NoLimitAttributes.Contains(key);
             sanitized[key] = SanitizeAttributeValue(value, applyLimit);
         }
 

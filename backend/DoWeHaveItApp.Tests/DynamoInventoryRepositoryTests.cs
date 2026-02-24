@@ -2,6 +2,7 @@ using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 using Amazon.Runtime;
 using DoWeHaveItApp.Infrastructure;
+using DoWeHaveItApp.Infrastructure.Dynamo;
 using DoWeHaveItApp.Models;
 using DoWeHaveItApp.Repositories;
 using Microsoft.Extensions.Options;
@@ -128,6 +129,31 @@ public sealed class DynamoInventoryRepositoryTests
         Assert.Equal("field-1", attributesValue.L[0].M!["fieldId"].S);
         Assert.Equal("Weight", attributesValue.L[0].M!["fieldName"].S);
         Assert.Equal("10", attributesValue.L[0].M!["value"].S);
+    }
+
+    [Fact]
+    public void BuildItemRecord_PreservesLongImageKey()
+    {
+        var repository = CreateRepository();
+        var fileName = "屏幕截图 2025-10-13 200621 - 副本屏幕截图 2025-10-13 200621 - 副本屏幕截图 2025-10-13 200621 - 副本.jpg";
+        var imageS3Key = $"{UserId}/item-1/{fileName}-{new string('a', DynamoAttributeBuilder.DefaultStringLimit)}";
+
+        Assert.True(imageS3Key.Length > DynamoAttributeBuilder.DefaultStringLimit);
+
+        var item = new Item
+        {
+            Id = "item-1",
+            Name = "Mixer",
+            Comments = string.Empty,
+            Attributes = new List<ItemAttribute>(),
+            ImageS3Key = imageS3Key,
+            CreatedAt = "2026-02-10T00:00:00Z",
+            UpdatedAt = "2026-02-10T00:00:00Z",
+        };
+
+        var record = InvokeBuildItemRecord(repository, UserId, item, "ROOT");
+
+        Assert.Equal(imageS3Key, record["imageS3Key"].S);
     }
 
     private static Dictionary<string, AttributeValue> InvokeBuildItemRecord(
