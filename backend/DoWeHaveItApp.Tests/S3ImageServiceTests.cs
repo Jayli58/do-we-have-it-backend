@@ -121,6 +121,7 @@ public sealed class S3ImageServiceTests
         Assert.Equal("image/jpeg", result.ContentType);
         Assert.Equal("photo.jpg", result.FileName);
         Assert.Equal(3, result.Stream.Length);
+        Assert.Null(result.ETag);
     }
 
     [Fact]

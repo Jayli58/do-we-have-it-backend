@@ -74,12 +74,23 @@ public sealed class ImageDownloadRequest
 }
 ```
 
+#### [NEW] [ImageDownloadResult.cs](file:///c:/Users/Lee58/source/repos/DoWeHaveItApp/backend/Dtos/ImageDownloadResult.cs)
+```csharp
+public sealed class ImageDownloadResult
+{
+    public required Stream Stream { get; init; }
+    public required string ContentType { get; init; }
+    public required string FileName { get; init; }
+    public string? ETag { get; init; }
+}
+```
+
 #### [NEW] [IImageService.cs](file:///c:/Users/Lee58/source/repos/DoWeHaveItApp/backend/Services/IImageService.cs)
 ```csharp
 public interface IImageService
 {
     Task<string> UploadAsync(ImageUploadRequest request);
-    Task<(Stream Stream, string ContentType, string FileName)> DownloadAsync(ImageDownloadRequest request);
+    Task<ImageDownloadResult> DownloadAsync(ImageDownloadRequest request);
     Task DeleteAsync(string userId, string s3Key);
 }
 ```
@@ -88,9 +99,9 @@ public interface IImageService
 - Implements `IImageService` using `IAmazonS3`.
 - `UploadAsync`:
   1. Validate file size ≤ 10 MB, reject with 400 if exceeded.
-  2. Compress image to JPG using ImageSharp (`Image.Load` → `JpegEncoder` quality 80).
+  2. Compress image to JPG using ImageSharp (`Image.Load` → `JpegEncoder` at configured quality).
   3. PutObject the compressed stream to `{userId}/{itemId}/{name}.jpg` with `userId` metadata and `content-type: image/jpeg`.
-- `DownloadAsync`: GetObject, verifies `userId` metadata matches the caller.
+- `DownloadAsync`: GetObject, verifies `userId` metadata matches the caller, and returns `ETag` for browser cache validation.
 - `DeleteAsync`: GetObject metadata first to verify `userId` ownership, then DeleteObject.
 
 ---
@@ -135,7 +146,7 @@ public interface IImageService
   1. New image attached → upload to S3, delete old if exists.
   2. `ImageRemoved = true` → delete from S3, clear image fields.
   3. No image change → preserve existing image fields.
-- Add new `GetImage` action: `[HttpGet("{id}/img")]` → calls `IImageService.GetImageAsync`, streams file back.
+- Add new `GetImage` action: `[HttpGet("{id}/img")]` → calls `IImageService.GetImageAsync`, streams file back with browser cache revalidation headers (`Cache-Control: private, max-age=0, must-revalidate`) and `ETag` handling.
 
 ---
 

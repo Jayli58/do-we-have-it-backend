@@ -242,7 +242,7 @@ public sealed class ItemsControllerTests
             throw new NotImplementedException();
         }
 
-        public Task<(Stream Stream, string ContentType, string FileName)> DownloadAsync(ImageDownloadRequest request)
+        public Task<ImageDownloadResult> DownloadAsync(ImageDownloadRequest request)
         {
             throw new NotImplementedException();
         }
@@ -262,7 +262,7 @@ public sealed class ItemsControllerTests
             throw new NotImplementedException();
         }
 
-        public Task<(Stream Stream, string ContentType, string FileName)> DownloadAsync(ImageDownloadRequest request)
+        public Task<ImageDownloadResult> DownloadAsync(ImageDownloadRequest request)
         {
             throw new NotImplementedException();
         }

@@ -1,6 +1,7 @@
 using DoWeHaveItApp.Dtos;
 using DoWeHaveItApp.Extensions;
 using DoWeHaveItApp.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DoWeHaveItApp.Controllers;
@@ -177,6 +178,19 @@ public sealed class ItemsController : ApiControllerBase
                 ItemId = item.Id,
                 S3Key = item.ImageS3Key,
             });
+            // cache control on browser only
+            Response.Headers.CacheControl = "private,max-age=0,must-revalidate";
+
+            if (!string.IsNullOrWhiteSpace(result.ETag))
+            {
+                Response.Headers.ETag = result.ETag;
+                // this is a browser cache validation
+                // if the client has the same ETag, return 304 Not Modified
+                if (Request.Headers.IfNoneMatch.Contains(result.ETag))
+                {
+                    return StatusCode(StatusCodes.Status304NotModified);
+                }
+            }
 
             return File(result.Stream, result.ContentType, result.FileName);
         }

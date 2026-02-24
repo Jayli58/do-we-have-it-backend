@@ -92,7 +92,7 @@ public sealed class S3ImageService : IImageService
         }
     }
 
-    public async Task<(Stream Stream, string ContentType, string FileName)> DownloadAsync(ImageDownloadRequest request)
+    public async Task<ImageDownloadResult> DownloadAsync(ImageDownloadRequest request)
     {
         GetObjectResponse response;
         try
@@ -118,8 +118,16 @@ public sealed class S3ImageService : IImageService
                 ? JpegContentType
                 : response.Headers.ContentType;
             var fileName = Path.GetFileName(request.S3Key);
+            // ETag is a version identifier for the object, a built-in feature of S3
+            var etag = string.IsNullOrWhiteSpace(response.ETag) ? null : response.ETag;
 
-            return (memoryStream, contentType, fileName);
+            return new ImageDownloadResult
+            {
+                Stream = memoryStream,
+                ContentType = contentType,
+                FileName = fileName,
+                ETag = etag,
+            };
         }
     }
 
