@@ -7,10 +7,12 @@ namespace DoWeHaveItApp.Services;
 public sealed class InventoryService : IInventoryService
 {
     private readonly IInventoryRepository _repository;
+    private readonly IImageService _imageService;
 
-    public InventoryService(IInventoryRepository repository)
+    public InventoryService(IInventoryRepository repository, IImageService imageService)
     {
         _repository = repository;
+        _imageService = imageService;
     }
 
     public async Task<FolderContentsResponse> GetFolderContentsAsync(string userId, string? parentId)
@@ -244,6 +246,18 @@ public sealed class InventoryService : IInventoryService
         var items = await _repository.GetItemsByParentAsync(userId, folder.Id);
         foreach (var item in items)
         {
+            if (!string.IsNullOrWhiteSpace(item.ImageS3Key))
+            {
+                try
+                {
+                    await _imageService.DeleteAsync(userId, item.ImageS3Key);
+                }
+                catch (Exception)
+                {
+                    // Best-effort image deletion should not block item removal.
+                }
+            }
+
             await _repository.DeleteItemAsync(userId, folder.Id, item.Id);
         }
 

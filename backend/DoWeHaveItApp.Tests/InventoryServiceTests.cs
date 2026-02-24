@@ -1,5 +1,6 @@
 using DoWeHaveItApp.Dtos;
 using DoWeHaveItApp.Services;
+using Moq;
 using System.Collections.Generic;
 using Xunit;
 
@@ -13,7 +14,7 @@ public sealed class InventoryServiceTests
     public async Task CreateFolderAsync_RejectsDuplicateNames()
     {
         var repository = new InMemoryInventoryRepository();
-        var service = new InventoryService(repository);
+        var service = new InventoryService(repository, Mock.Of<IImageService>());
 
         await service.CreateFolderAsync(UserId, new CreateFolderRequest
         {
@@ -35,7 +36,7 @@ public sealed class InventoryServiceTests
     public async Task UpdateItemAsync_UpdatesFields()
     {
         var repository = new InMemoryInventoryRepository();
-        var service = new InventoryService(repository);
+        var service = new InventoryService(repository, Mock.Of<IImageService>());
 
         var created = await service.CreateItemAsync(new CreateItemContext
         {
@@ -81,7 +82,7 @@ public sealed class InventoryServiceTests
     public async Task DeleteFolderAsync_CascadesToChildren()
     {
         var repository = new InMemoryInventoryRepository();
-        var service = new InventoryService(repository);
+        var service = new InventoryService(repository, Mock.Of<IImageService>());
 
         var parent = await service.CreateFolderAsync(UserId, new CreateFolderRequest
         {
@@ -130,5 +131,58 @@ public sealed class InventoryServiceTests
         Assert.Null(remainingChild);
         Assert.Empty(parentItems);
         Assert.Empty(childItems);
+    }
+
+    [Fact]
+    public async Task DeleteFolderAsync_DeletesItemImages()
+    {
+        var repository = new InMemoryInventoryRepository();
+        var imageService = new Mock<IImageService>();
+        var service = new InventoryService(repository, imageService.Object);
+
+        var parent = await service.CreateFolderAsync(UserId, new CreateFolderRequest
+        {
+            Name = "Basement",
+            ParentId = null,
+        });
+
+        var child = await service.CreateFolderAsync(UserId, new CreateFolderRequest
+        {
+            Name = "Storage",
+            ParentId = parent.Id,
+        });
+
+        await service.CreateItemAsync(new CreateItemContext
+        {
+            UserId = UserId,
+            Request = new CreateItemRequest
+            {
+                Name = "Workbench",
+                Comments = "",
+                ParentId = parent.Id,
+                Attributes = new List<ItemAttributeDto>(),
+            },
+            ImageName = "workbench.png",
+            ImageS3Key = "s3://workbench.png",
+        });
+
+        await service.CreateItemAsync(new CreateItemContext
+        {
+            UserId = UserId,
+            Request = new CreateItemRequest
+            {
+                Name = "Drill",
+                Comments = "",
+                ParentId = child.Id,
+                Attributes = new List<ItemAttributeDto>(),
+            },
+            ImageName = "drill.png",
+            ImageS3Key = "s3://drill.png",
+        });
+
+        await service.DeleteFolderAsync(UserId, parent.Id);
+
+        imageService.Verify(service => service.DeleteAsync(UserId, "s3://workbench.png"), Times.Once);
+        imageService.Verify(service => service.DeleteAsync(UserId, "s3://drill.png"), Times.Once);
     }
 }

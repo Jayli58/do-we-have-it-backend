@@ -1,5 +1,6 @@
 using DoWeHaveItApp.Dtos;
 using DoWeHaveItApp.Services;
+using Moq;
 using Xunit;
 
 namespace DoWeHaveItApp.Tests;
@@ -12,7 +13,7 @@ public sealed class SearchServiceTests
     public async Task SearchItemsAsync_ReturnsMatchingItemsAcrossParents()
     {
         var repository = new InMemoryInventoryRepository();
-        var inventoryService = new InventoryService(repository);
+        var inventoryService = CreateInventoryService(repository);
         var searchService = new SearchService(repository);
 
         await inventoryService.CreateItemAsync(new CreateItemContext
@@ -49,7 +50,7 @@ public sealed class SearchServiceTests
     public async Task SearchItemsAsync_ReturnsEmptyForMisspelledQuery()
     {
         var repository = new InMemoryInventoryRepository();
-        var inventoryService = new InventoryService(repository);
+        var inventoryService = CreateInventoryService(repository);
         var searchService = new SearchService(repository);
 
         await inventoryService.CreateItemAsync(new CreateItemContext
@@ -84,7 +85,7 @@ public sealed class SearchServiceTests
     public async Task SearchItemsAsync_ReturnsMatchesForPrefixQuery()
     {
         var repository = new InMemoryInventoryRepository();
-        var inventoryService = new InventoryService(repository);
+        var inventoryService = CreateInventoryService(repository);
         var searchService = new SearchService(repository);
 
         await inventoryService.CreateItemAsync(new CreateItemContext
@@ -109,7 +110,7 @@ public sealed class SearchServiceTests
     public async Task SearchItemsAsync_ReturnsEmptyForNonPrefixQuery()
     {
         var repository = new InMemoryInventoryRepository();
-        var inventoryService = new InventoryService(repository);
+        var inventoryService = CreateInventoryService(repository);
         var searchService = new SearchService(repository);
 
         await inventoryService.CreateItemAsync(new CreateItemContext
@@ -133,7 +134,7 @@ public sealed class SearchServiceTests
     public async Task SearchItemsAsync_ReturnsResultsFromDifferentParents()
     {
         var repository = new InMemoryInventoryRepository();
-        var inventoryService = new InventoryService(repository);
+        var inventoryService = CreateInventoryService(repository);
         var searchService = new SearchService(repository);
 
         await inventoryService.CreateItemAsync(new CreateItemContext
@@ -169,7 +170,7 @@ public sealed class SearchServiceTests
     public async Task SearchItemsAsync_ReturnsMatchesForCjkCharacters()
     {
         var repository = new InMemoryInventoryRepository();
-        var inventoryService = new InventoryService(repository);
+        var inventoryService = CreateInventoryService(repository);
         var searchService = new SearchService(repository);
 
         await inventoryService.CreateItemAsync(new CreateItemContext
@@ -197,7 +198,7 @@ public sealed class SearchServiceTests
     public async Task SearchItemsAsync_ReturnsMatchesForMixedCjkTokens()
     {
         var repository = new InMemoryInventoryRepository();
-        var inventoryService = new InventoryService(repository);
+        var inventoryService = CreateInventoryService(repository);
         var searchService = new SearchService(repository);
 
         await inventoryService.CreateItemAsync(new CreateItemContext
@@ -220,5 +221,10 @@ public sealed class SearchServiceTests
         Assert.Single(firstResults.Items);
         Assert.Single(secondResults.Items);
         Assert.Equal("PP测试", queryResults.Items[0].Name);
+    }
+
+    private static InventoryService CreateInventoryService(InMemoryInventoryRepository repository)
+    {
+        return new InventoryService(repository, Mock.Of<IImageService>());
     }
 }
