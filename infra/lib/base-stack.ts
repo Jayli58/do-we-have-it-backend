@@ -15,7 +15,7 @@ export class BaseStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, {
       ...props,
-      description: "Base infra: DynamoDB for DoWeHaveItApp"
+      description: "Base infra: DynamoDB and S3 (img bucket) for DoWeHaveItApp"
     });
 
     const cfg4Inven = dynamodbConfig.tables.inventory;

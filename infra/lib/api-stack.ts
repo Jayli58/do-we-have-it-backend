@@ -62,6 +62,7 @@ export class ApiStack extends cdk.Stack {
 
         inventoryTable.grantReadWriteData(apiFn);
 
+        // allow lambda to access s3 (images bucket)
         const imageBucketArn = ssm.StringParameter.valueForStringParameter(this, s3Param("images", "arn"));
         const imageBucketName = ssm.StringParameter.valueForStringParameter(this, s3Param("images", "name"));
         const imageBucket = s3.Bucket.fromBucketAttributes(this, "DWHIImageBucket", {
