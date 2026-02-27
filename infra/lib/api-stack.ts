@@ -126,19 +126,12 @@ export class ApiStack extends cdk.Stack {
         });
 
         // allow all preflight requests without JWT
-        httpApi.addRoutes({
-            path: '/{proxy+}',
-            methods: [apigwv2.HttpMethod.OPTIONS],
-            integration: lambdaIntegration,
-            // turn off authorizer
-            authorizer: new apigwv2.HttpNoneAuthorizer(),
-        });
-
-        // health check
+        // no longer needed as cloudfront forwards request to api gtw now
         // httpApi.addRoutes({
-        //     path: '/health',
-        //     methods: [apigwv2.HttpMethod.GET],
+        //     path: '/{proxy+}',
+        //     methods: [apigwv2.HttpMethod.OPTIONS],
         //     integration: lambdaIntegration,
+        //     // turn off authorizer
         //     authorizer: new apigwv2.HttpNoneAuthorizer(),
         // });
 
