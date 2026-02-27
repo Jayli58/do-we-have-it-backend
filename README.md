@@ -1,6 +1,6 @@
 ## Do We Have It Serverless Backend and Infrastructure
 
-Do We Have It is an inventory tracker for folders and items, with custom attributes, templates, and image uploads to describe what you own.
+Do We Have It (DWHI) is an inventory tracker for folders and items, with custom attributes, templates, and image uploads to describe what you own.
 
 This repo contains the DWHI backend and its AWS infrastructure. The backend is a serverless ASP.NET Core Web API that stores folder, item, and template data in a single DynamoDB table, supports image uploads to S3, and uses Cognito JWTs for authorization. The infrastructure is managed with AWS CDK and provisions the serverless API Lambda, API Gateway, DynamoDB, and S3 image bucket, plus a CI pipeline for deployments.
 
