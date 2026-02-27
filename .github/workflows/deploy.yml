@@ -27,7 +27,7 @@ jobs:
 
       # restore dependencies for tests project only as it has a project reference to the app project
       - name: Restore dependencies
-        run: dotnet restore backend/DoWeHaveItApp.Tests/DoWeHaveItApp.Tests.csproj
+        run: dotnet restore backend/DoWeHaveItApp.Tests/DoWeHaveItApp.Tests.csproj -r linux-x64
 
       # skip integration test
       - name: Run DoWeHaveItApp.Tests
