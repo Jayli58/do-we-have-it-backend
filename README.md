@@ -1,8 +1,8 @@
-## Do We Have It Backend and Infrastructure
+## Do We Have It Serverless Backend and Infrastructure
 
 Do We Have It is an inventory tracker for folders and items, with custom attributes, templates, and image uploads to describe what you own.
 
-This repo contains the DWHI backend and its AWS infrastructure. The backend is an ASP.NET Core Web API that stores folder, item, and template data in a single DynamoDB table, supports image uploads to S3, and uses Cognito JWTs for authorization. The infrastructure is managed with AWS CDK and provisions the API Lambda, API Gateway, DynamoDB, and S3 image bucket, plus a CI pipeline for deployments.
+This repo contains the DWHI backend and its AWS infrastructure. The backend is a serverless ASP.NET Core Web API that stores folder, item, and template data in a single DynamoDB table, supports image uploads to S3, and uses Cognito JWTs for authorization. The infrastructure is managed with AWS CDK and provisions the serverless API Lambda, API Gateway, DynamoDB, and S3 image bucket, plus a CI pipeline for deployments.
 
 ### TL;DR
 
@@ -39,6 +39,15 @@ docker compose up -d
 ```
 
 LocalStack initializes the `Inventory` DynamoDB table and the `dwhi-images` S3 bucket.
+
+### Data model and search
+
+- Single-table DynamoDB design with a GSI (`GSI1`) for tokenized item search.
+- Search tokens are normalized (lowercase, trimmed, punctuation stripped) and stored as inverted index entries for name/comments lookup.
+
+### Image API caching
+
+The `GET /items/{id}/img` endpoint returns S3-provided `ETag` headers with `Cache-Control: private, max-age=0, must-revalidate` so browsers can revalidate cached images safely.
 
 ### Configuration
 
