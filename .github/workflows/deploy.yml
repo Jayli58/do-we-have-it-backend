@@ -26,6 +26,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       # restore dependencies for tests project only as it has a project reference to the app project
+      # linux-x64 is required for publish
       - name: Restore dependencies
         run: dotnet restore backend/DoWeHaveItApp.Tests/DoWeHaveItApp.Tests.csproj -r linux-x64
 
