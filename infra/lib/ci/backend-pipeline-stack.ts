@@ -52,7 +52,7 @@ export class BackendPipelineStack extends cdk.Stack {
                         commands: [
                             'infra_dir="$CODEBUILD_SRC_DIR"',
                             'app_dir="$CODEBUILD_SRC_DIR_DWHIBackendSourceOutput"',
-                            'export MYAPP_ROOT="$app_dir"',
+                            'export MYAPP_ROOT="$app_dir/backend"',
                             'cd "$infra_dir"',
                             'npm ci',
                         ],
