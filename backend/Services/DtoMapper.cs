@@ -21,12 +21,15 @@ public static class DtoMapper
         Value = attribute.Value,
     };
 
-    public static ItemDto ToDto(Item item) => new()
+    public static ItemDto ToDto(Item item) => ToDto(item, null);
+
+    public static ItemDto ToDto(Item item, string? parentPath) => new()
     {
         Id = item.Id,
         Name = item.Name,
         Comments = item.Comments,
         ParentId = item.ParentId,
+        ParentPath = parentPath,
         Attributes = item.Attributes.Select(ToDto).ToList(),
         CreatedAt = item.CreatedAt,
         UpdatedAt = item.UpdatedAt,

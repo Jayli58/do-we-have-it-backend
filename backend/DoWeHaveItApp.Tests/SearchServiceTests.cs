@@ -167,6 +167,66 @@ public sealed class SearchServiceTests
     }
 
     [Fact]
+    public async Task SearchItemsAsync_ReturnsParentPathInOrder()
+    {
+        var repository = new InMemoryInventoryRepository();
+        var inventoryService = CreateInventoryService(repository);
+        var searchService = new SearchService(repository);
+
+        var kitchen = await inventoryService.CreateFolderAsync(UserId, new CreateFolderRequest
+        {
+            Name = "Kitchen",
+        });
+        var pantry = await inventoryService.CreateFolderAsync(UserId, new CreateFolderRequest
+        {
+            Name = "Pantry",
+            ParentId = kitchen.Id,
+        });
+
+        await inventoryService.CreateItemAsync(new CreateItemContext
+        {
+            UserId = UserId,
+            Request = new CreateItemRequest
+            {
+                Name = "Coffee Filters",
+                Comments = "",
+                ParentId = pantry.Id,
+                Attributes = new List<ItemAttributeDto>(),
+            },
+        });
+
+        var results = await searchService.SearchItemsAsync(UserId, "coffee");
+
+        Assert.Single(results.Items);
+        Assert.Equal("Kitchen > Pantry", results.Items[0].ParentPath);
+    }
+
+    [Fact]
+    public async Task SearchItemsAsync_ReturnsRootParentPathWhenNoParent()
+    {
+        var repository = new InMemoryInventoryRepository();
+        var inventoryService = CreateInventoryService(repository);
+        var searchService = new SearchService(repository);
+
+        await inventoryService.CreateItemAsync(new CreateItemContext
+        {
+            UserId = UserId,
+            Request = new CreateItemRequest
+            {
+                Name = "Flashlight",
+                Comments = "",
+                ParentId = null,
+                Attributes = new List<ItemAttributeDto>(),
+            },
+        });
+
+        var results = await searchService.SearchItemsAsync(UserId, "flash");
+
+        Assert.Single(results.Items);
+        Assert.Equal("root", results.Items[0].ParentPath);
+    }
+
+    [Fact]
     public async Task SearchItemsAsync_ReturnsMatchesForCjkCharacters()
     {
         var repository = new InMemoryInventoryRepository();
